@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="ColorOrgan5Nodes.Nodes.ArduinoSerialOutputNodeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:s="https://github.com/canton7/Stylet"
+             xmlns:nodes="clr-namespace:ColorOrgan5Nodes.Nodes"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance nodes:ArduinoSerialOutputNodeViewModel}"
+             Width="120"
+             Height="60"
+             SizeChanged="{s:Action OnNodeSizeChanged}">
+    <Border BorderBrush="Gray" Background="White" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ComboBox ItemsSource="{Binding PortNames}" 
+                      SelectedItem="{Binding SelectedPort, Mode=TwoWay}"
+                      Margin="1"/>
+            <Button Grid.Row="1" 
+                    Content="{Binding SerialButtonContent}" 
+                    Command="{s:Action SerialButtonPressed}"
+                    IsEnabled="{Binding ConnectButtonIsEnabled}"
+                    Margin="1"/>
+        </Grid>
+    </Border>
+</UserControl>
