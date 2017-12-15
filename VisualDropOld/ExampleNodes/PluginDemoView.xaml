@@ -1,0 +1,15 @@
+﻿<UserControl x:Class="ColorOrgan5Nodes.ExampleNodes.PluginDemoView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:s="https://github.com/canton7/Stylet"
+             xmlns:exampleNodes="clr-namespace:ColorOrgan5Nodes.ExampleNodes"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance exampleNodes:PluginDemoViewModel}"
+             SizeChanged="{s:Action OnNodeSizeChanged}"
+             Width="40" 
+             Height="40">
+    <Border BorderBrush="Gray" Background="White" BorderThickness="1">
+    </Border>
+</UserControl>
