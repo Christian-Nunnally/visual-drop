@@ -2,29 +2,32 @@
 using System.Text;
 using System.Windows.Media;
 
-namespace ColorOrgan5Nodes.NodeTools
+namespace VisualDrop
 {
     public class StaticLedGraphic
     {
-        public StaticLedGraphic()
+        private readonly int _numLeds;
+
+        public StaticLedGraphic(int numLeds)
         {
-            Graphic = new byte[64 * 3];
+            _numLeds = numLeds;
+            Graphic = new byte[numLeds * 3];
         }
         
         public byte[] Graphic { get; }
 
         public void SetPixel(int pixelNumber, Color color)
         {
-            if ((pixelNumber < 0) || (pixelNumber >= 64)) throw new ArgumentException("color");
-            Graphic[pixelNumber] = color.R;
-            Graphic[pixelNumber + 64] = color.G;
-            Graphic[pixelNumber + 128] = color.B;
+            if (pixelNumber >= _numLeds) return;
+            Graphic[pixelNumber * 3] = color.R;
+            Graphic[pixelNumber * 3 + 1] = color.G;
+            Graphic[pixelNumber * 3 + 2] = color.B;
         }
 
         public bool IsPixelOff(int pixelNumber)
         {
             if ((pixelNumber < 0) || (pixelNumber >= 64)) throw new ArgumentException("color");
-            return (Graphic[pixelNumber] == 0) && (Graphic[pixelNumber + 64] == 0) && (Graphic[pixelNumber + 64] == 0);
+            return (Graphic[pixelNumber * 3] == 0) && (Graphic[pixelNumber * 3 + 1] == 0) && (Graphic[pixelNumber * 3 + 2] == 0);
         }
 
         public override string ToString()

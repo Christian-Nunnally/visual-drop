@@ -1,98 +1,120 @@
 #include <Adafruit_NeoPixel.h>
 
-#define DisplayPinStart 2
 #define NumDisplays 8
-#define DisplayWidth 8
-#define DisplayHeight 8
-#define PixelsPerDisplay DisplayWidth * DisplayHeight
 #define StartSequenceLength 4
-#define HeaderSize 8
-#define DataSize 192
-#define DisplaySequenceLength HeaderSize + DataSize
-#define MaxSyncTimer 2000000
+#define HeaderLength 8
 
-#define GOffSet 64
-#define BOffSet 128
+#define ProgramDisplayOpCode 0
+#define SetDisplayOpCode 1
 
-Adafruit_NeoPixel displays[NumDisplays];
+int displayPin[] {2, 3, 4, 5, 6, 7, 8, 9};
+int displayPixelCount[NumDisplays];
+Adafruit_NeoPixel display1 = Adafruit_NeoPixel(0, 2, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel display2 = Adafruit_NeoPixel(0, 3, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel display3 = Adafruit_NeoPixel(0, 4, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel display4 = Adafruit_NeoPixel(0, 5, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel display5 = Adafruit_NeoPixel(0, 6, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel display6 = Adafruit_NeoPixel(0, 7, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel display7 = Adafruit_NeoPixel(0, 8, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel display8 = Adafruit_NeoPixel(0, 9, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel displays[] { display1, display2, display3, display4, display5, display6, display7, display8 };
 
-int startSequencePosition = 0;
 int startSequence[] = {40, 30, 20, 10};
-int displaySequencePosition = 0;
-byte displayBuffer[192];
-int syncTimer = 0;
+int startSequencePosition = 0;
+int headerPosition = -1;
+int bodyPosition = -1;
+byte displayBuffer[512];
+
+byte workingDisplay = 0;
+byte opCode = 0;
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(115200);
-
-  for (int i = 0; i < NumDisplays; i++) {
-    displays[i] = Adafruit_NeoPixel(PixelsPerDisplay, DisplayPinStart + i, NEO_GRB + NEO_KHZ800);
-    displays[i].begin();
-  }
+  displays[0].begin();
+  displays[1].begin();
+  displays[2].begin();
+  displays[3].begin();
+  displays[4].begin();
+  displays[5].begin();
+  displays[6].begin();
+  displays[7].begin();
+  SerialUSB.begin(115200);
 }
 
 void loop() {
-  while(Serial.available()) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    syncTimer = 0;
-    byte b = Serial.read();
-    displaySequence(b);
-    searchForStartSequence(b);
+  while(SerialUSB.available()) {
+    byte b = SerialUSB.read();
+
+    if (headerPosition != -1) {
+      processHeader(b);
+    }
+    else if (bodyPosition != -1) {
+      processBody(b);
+    }
+    else {
+      searchForStartSequence(b);
+    }
   }
-  digitalWrite(LED_BUILTIN, LOW);
-  //syncTimer++;
-  //if (syncTimer > MaxSyncTimer) {
-  //  syncTimer = 0;
-  //  Serial.write(B1);
-  //}
 }
 
 void searchForStartSequence(byte b) {
   if (startSequence[startSequencePosition] == b) {
     startSequencePosition++;
-    if (startSequencePosition == StartSequenceLength) {    
-      if (displaySequencePosition < DisplaySequenceLength) {
-      }
-      startSequencePosition = 0;
-      displaySequencePosition = 0;
-    }
   } else {
     startSequencePosition = 0;
   }
+
+  if (startSequencePosition == StartSequenceLength) {
+    startSequencePosition = 0;  
+    headerPosition = 0;
+    bodyPosition = -1;
+  }
 }
 
-byte workingDisplay = 0;
-
-void displaySequence(byte b) {
-  if (displaySequencePosition >= DisplaySequenceLength) {
-    digitalWrite(LED_BUILTIN, LOW);
-    return;
-  }
-  if (displaySequencePosition >= HeaderSize) {
-    displayBuffer[displaySequencePosition - HeaderSize] = b;
-    if (displaySequencePosition - HeaderSize == 191) {
-       digitalWrite(LED_BUILTIN, HIGH);
-    }
-    if (displaySequencePosition == DisplaySequenceLength - 1) {
-      display();
-    }
-  } else if (displaySequencePosition == 0) {
+void processHeader(byte b) {
+  if (headerPosition == 0) {
+    opCode = b;
+  } else if (headerPosition == 1) {
     workingDisplay = b;
   }
-  displaySequencePosition++;
+  headerPosition++;
+  if (headerPosition == HeaderLength) {
+    bodyPosition = 0; 
+    headerPosition = -1;
+  }
+}
+
+void processBody(byte b) {
+  if (opCode == SetDisplayOpCode) {
+    setDisplay(b);
+  } else if (opCode == ProgramDisplayOpCode) {
+    programDisplay(b);
+  }
+  bodyPosition++;
+}
+
+void programDisplay(byte b) {
+  SerialUSB.write(workingDisplay);
+  SerialUSB.write(b);
+  displayPixelCount[workingDisplay] = b;
+  displays[workingDisplay].updateLength(b);
+  displays[workingDisplay].show();
+  bodyPosition = -2;
+}
+
+void setDisplay(byte b) {
+  if (displayPixelCount[workingDisplay] == 0) return;
+  displayBuffer[bodyPosition] = b;
+  if (bodyPosition >= displayPixelCount[workingDisplay] * 3 - 1) {
+    bodyPosition = -2;
+    display();
+    return;
+  }
 }
 
 void display() {
-  //Serial.write(workingDisplay);
-  if (workingDisplay >= NumDisplays) {
-    return;
-  }
-  digitalWrite(LED_BUILTIN, LOW);
-  for (int i = 0; i < PixelsPerDisplay; i++)
+  for (int i = 0; i < displayPixelCount[workingDisplay]; i++)
   {
-    displays[workingDisplay].setPixelColor(i, displayBuffer[i], displayBuffer[GOffSet + i], displayBuffer[BOffSet + i]);
+    displays[workingDisplay].setPixelColor(i, displayBuffer[i * 3], displayBuffer[i * 3 + 1], displayBuffer[i * 3 + 2]);
   }
   displays[workingDisplay].show();
-  Serial.write(B1);
 }
