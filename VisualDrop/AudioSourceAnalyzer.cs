@@ -28,7 +28,7 @@ namespace VisualDrop
             _hanctr = 0;
             _displayRefreshTimer = new DispatcherTimer();
             _displayRefreshTimer.Tick += _t_Tick;
-            _displayRefreshTimer.Interval = TimeSpan.FromMilliseconds(10); //40hz refresh rate
+            _displayRefreshTimer.Interval = TimeSpan.FromMilliseconds(17); //60hz refresh rate
             _displayRefreshTimer.IsEnabled = false;
             _process = Process;
             _spectrumdata = new List<byte>();
@@ -81,6 +81,7 @@ namespace VisualDrop
 
         public void Disable()
         {
+            if (!_initialized) return;
             BassWasapi.BASS_WASAPI_Stop(true);
             BassWasapi.BASS_WASAPI_Free();
             _initialized = false;

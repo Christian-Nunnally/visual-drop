@@ -1,8 +1,8 @@
 #include <Adafruit_NeoPixel.h>
 
 #define NumDisplays 8
-#define StartSequenceLength 4
-#define HeaderLength 8
+#define StartSequenceLength 3
+#define HeaderLength 2
 
 #define ProgramDisplayOpCode 0
 #define SetDisplayOpCode 1
@@ -19,11 +19,11 @@ Adafruit_NeoPixel display7 = Adafruit_NeoPixel(0, 8, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel display8 = Adafruit_NeoPixel(0, 9, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel displays[] { display1, display2, display3, display4, display5, display6, display7, display8 };
 
-int startSequence[] = {40, 30, 20, 10};
+int startSequence[] = {40, 30, 20};
 int startSequencePosition = 0;
 int headerPosition = -1;
 int bodyPosition = -1;
-byte displayBuffer[512];
+byte displayBuffer[1024];
 
 byte workingDisplay = 0;
 byte opCode = 0;
@@ -74,7 +74,9 @@ void processHeader(byte b) {
   if (headerPosition == 0) {
     opCode = b;
   } else if (headerPosition == 1) {
-    workingDisplay = b;
+    if (b < 8) {
+      workingDisplay = b;
+    }
   }
   headerPosition++;
   if (headerPosition == HeaderLength) {
@@ -102,7 +104,10 @@ void programDisplay(byte b) {
 }
 
 void setDisplay(byte b) {
-  if (displayPixelCount[workingDisplay] == 0) return;
+  if (displayPixelCount[workingDisplay] == 0) {
+    bodyPosition = -2;
+    return;
+  }
   displayBuffer[bodyPosition] = b;
   if (bodyPosition >= displayPixelCount[workingDisplay] * 3 - 1) {
     bodyPosition = -2;
