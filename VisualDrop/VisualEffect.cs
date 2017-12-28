@@ -1,5 +1,8 @@
-﻿namespace VisualDrop
+﻿using System;
+
+namespace VisualDrop
 {
+    [Serializable]
     public class VisualEffect : IVisualEffect
     {
         public byte[][] Frames { get; set; }
@@ -12,9 +15,9 @@
             Frames = new byte[numberOfFrames][];
         }
 
-        public void AddFrame(byte[] frame)
+        public void SetFrame(byte[] frame, int frameIndex)
         {
-            Frames[CurrentFrame++] = frame;
+            Frames[frameIndex] = frame;
         }
 
         public byte[] GetEffect()

@@ -61,12 +61,16 @@
     <Compile Include="ArrayIndexNodeViewModel.cs" />
     <Compile Include="AudioSourceAnalyzer.cs" />
     <Compile Include="AudioSourceViewModel.cs" />
+    <Compile Include="AverageSpectrumViewModel.cs" />
     <Compile Include="ColorOrganViewModel.cs" />
+    <Compile Include="ComposeEffectViewModel.cs" />
+    <Compile Include="CompositeVisualEffect.cs" />
     <Compile Include="DisplayInfo.cs" />
     <Compile Include="IVisualEffect.cs" />
     <Compile Include="LevelThresholdViewModel.cs" />
     <Compile Include="NormalizeSpectrumViewModel.cs" />
     <Compile Include="OnOffEffectViewModel.cs" />
+    <Compile Include="RandomGraphicGeneratorViewModel.cs" />
     <Compile Include="SqaureLedDisplayViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerialOutputViewModel.cs" />
@@ -92,7 +96,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="AverageSpectrumView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="ColorOrganView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ComposeEffectView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -105,6 +117,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="OnOffEffectView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="RandomGraphicGeneratorView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

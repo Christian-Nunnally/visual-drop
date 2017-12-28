@@ -1,4 +1,6 @@
-﻿namespace VisualDrop
+﻿using System;
+
+namespace VisualDrop
 {
     public interface IVisualEffect
     {
