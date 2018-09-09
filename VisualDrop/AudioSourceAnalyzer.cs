@@ -26,9 +26,9 @@ namespace VisualDrop
             Lines = 16;
             _lastlevel = 0;
             _hanctr = 0;
-            _displayRefreshTimer = new DispatcherTimer();
+            _displayRefreshTimer = new DispatcherTimer(DispatcherPriority.Render);
             _displayRefreshTimer.Tick += _t_Tick;
-            _displayRefreshTimer.Interval = TimeSpan.FromMilliseconds(17); //60hz refresh rate
+            _displayRefreshTimer.Interval = TimeSpan.FromMilliseconds(20); //60hz refresh rate
             _displayRefreshTimer.IsEnabled = false;
             _process = Process;
             _spectrumdata = new List<byte>();

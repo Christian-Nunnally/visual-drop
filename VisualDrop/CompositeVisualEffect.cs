@@ -11,9 +11,9 @@ namespace VisualDrop
     {
         private readonly IVisualEffect[] _composedEffects;
 
-        public CompositeVisualEffect(int _numberOfEffects)
+        public CompositeVisualEffect(int numberOfEffects)
         {
-            _composedEffects = new IVisualEffect[_numberOfEffects];
+            _composedEffects = new IVisualEffect[numberOfEffects];
         }
 
         public void SetEffect(int index, IVisualEffect effect)
@@ -39,7 +39,9 @@ namespace VisualDrop
             {
                 for (int i = 0; i < effect.Length; i++)
                 {
-                    composedGraphic[i] = Math.Max(composedGraphic[i], effect[i]);
+                    var a = composedGraphic[i];
+                    var b = effect[i];
+                    composedGraphic[i] = Math.Max(a, b);
                 }
             }
 

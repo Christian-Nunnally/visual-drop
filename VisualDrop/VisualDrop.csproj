@@ -58,7 +58,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArrayIndexNodeViewModel.cs" />
     <Compile Include="AudioSourceAnalyzer.cs" />
     <Compile Include="AudioSourceViewModel.cs" />
     <Compile Include="AverageSpectrumViewModel.cs" />
@@ -88,10 +87,6 @@
     <None Include="FodyWeavers.xml" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ArrayIndexNodeView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="AudioSourceView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -7,7 +7,7 @@ namespace VisualDrop
     {
         public byte[][] Frames { get; set; }
         public int CurrentFrame { get; set; }
-        private int _numberOfFrames;
+        private readonly int _numberOfFrames;
 
         public VisualEffect(int numberOfFrames)
         {

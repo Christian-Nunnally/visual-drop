@@ -6,9 +6,14 @@
 
 #define ProgramDisplayOpCode 0
 #define SetDisplayOpCode 1
+#define CloneDisplayOpCode 2
+#define ResetClonedDisplaysOpCode 3
 
 int displayPin[] {2, 3, 4, 5, 6, 7, 8, 9};
 int displayPixelCount[NumDisplays];
+int linkedDisplaysCount[NumDisplays];
+int linkedDisplays[NumDisplays][NumDisplays];
+
 Adafruit_NeoPixel display1 = Adafruit_NeoPixel(0, 2, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel display2 = Adafruit_NeoPixel(0, 3, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel display3 = Adafruit_NeoPixel(0, 4, NEO_GRB + NEO_KHZ800);
@@ -38,6 +43,12 @@ void setup() {
   displays[6].begin();
   displays[7].begin();
   SerialUSB.begin(115200);
+
+  for (int i = 0; i < NumDisplays; i++) {
+    for (int j = 0; j < NumDisplays; j++) {
+      linkedDisplays[i][j] = -1;
+    }  
+  }
 }
 
 void loop() {
@@ -90,16 +101,34 @@ void processBody(byte b) {
     setDisplay(b);
   } else if (opCode == ProgramDisplayOpCode) {
     programDisplay(b);
+  } else if (opCode == CloneDisplayOpCode) {
+    cloneDisplay(b);
+  } else if (opCode == ResetClonedDisplaysOpCode) {
+    resetClones();
   }
   bodyPosition++;
 }
 
+void resetClones() {
+  for (int i = 0; i < NumDisplays; i++) {
+    linkedDisplaysCount[i] = 0;
+    for (int j = 0; j < NumDisplays; j++) {
+      linkedDisplays[i][j] = -1;
+    }  
+  }
+  bodyPosition = -2;
+}
+
 void programDisplay(byte b) {
-  SerialUSB.write(workingDisplay);
-  SerialUSB.write(b);
   displayPixelCount[workingDisplay] = b;
   displays[workingDisplay].updateLength(b);
   displays[workingDisplay].show();
+  bodyPosition = -2;
+}
+
+void cloneDisplay(byte b) {
+  linkedDisplays[workingDisplay][linkedDisplaysCount[workingDisplay]] = b;
+  linkedDisplaysCount[workingDisplay] += 1;
   bodyPosition = -2;
 }
 
@@ -119,7 +148,17 @@ void setDisplay(byte b) {
 void display() {
   for (int i = 0; i < displayPixelCount[workingDisplay]; i++)
   {
-    displays[workingDisplay].setPixelColor(i, displayBuffer[i * 3], displayBuffer[i * 3 + 1], displayBuffer[i * 3 + 2]);
+    int i3 = i * 3;
+    byte r = displayBuffer[i3];
+    byte g = displayBuffer[i3 + 1];
+    byte b = displayBuffer[i3 + 2];
+    displays[workingDisplay].setPixelColor(i, r, g, b);
+    for (int j = 0; j < linkedDisplaysCount[workingDisplay]; j++) {
+      displays[linkedDisplays[workingDisplay][j]].setPixelColor(i, r, g, b);
+    }
   }
   displays[workingDisplay].show();
+  for (int j = 0; j < linkedDisplaysCount[workingDisplay]; j++) {
+    displays[linkedDisplays[workingDisplay][j]].show();
+  }
 }
