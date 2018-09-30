@@ -16,16 +16,23 @@ namespace DiiagramrFadeCandy
 
     public class FadeCandyClient : IDisposable
     {
-
+        private const int LedsPerDevice = 64;
+        private const int NumberOfDevices = 8;
+        private const int HeaderByteLength = 4;
+        private const int BytesPerLed = 3;
+        private const int TotalNumberOfLeds = NumberOfDevices * LedsPerDevice;
+        private const int BytesPerPacket = TotalNumberOfLeds * BytesPerLed;
+        private const byte LengthHighByte = BytesPerPacket / 256;
+        private const byte LengthLowByte = BytesPerPacket % 256;
+        private const byte Channel = 0;
+        private const byte Command = 0;
         public bool _verbose;
-
         public bool _long_connection;
-
         public string _ip;
-
         public int _port;
-
         public Socket _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+        private readonly byte[] _messageByteBuffer = new byte[TotalNumberOfLeds * BytesPerLed + HeaderByteLength];
 
         public FadeCandyClient(string ip, int port, bool long_connecton = true, bool verbose = false)
         {
@@ -33,6 +40,11 @@ namespace DiiagramrFadeCandy
             _port = port;
             _long_connection = long_connecton;
             _verbose = verbose;
+
+            _messageByteBuffer[0] = Channel;
+            _messageByteBuffer[1] = Command;
+            _messageByteBuffer[2] = LengthHighByte;
+            _messageByteBuffer[3] = LengthLowByte;
 
             Debug(string.Format("{0}:{1}", _ip, _port));
         }
@@ -97,16 +109,30 @@ namespace DiiagramrFadeCandy
                 Debug("Put pixels not connected. Ignoring these pixels.");
             }
 
+            int bufferPosition = HeaderByteLength;
             foreach (var driver in drivers)
             {
-                if (driver == null) continue;
-                driver.UpdateLeds(bitmap, _socket);
-            }
-        }
+                if (driver == null)
+                {
+                    continue;
+                }
 
-        internal void PutPixels(Bitmap bitmap, object ledDrivers)
-        {
-            throw new NotImplementedException();
+                var ledData = driver.GetLedData(bitmap);
+                for (int i = 0; i < LedsPerDevice * BytesPerLed;)
+                {
+                    _messageByteBuffer[bufferPosition++] = ledData[i++];
+                    _messageByteBuffer[bufferPosition++] = ledData[i++];
+                    _messageByteBuffer[bufferPosition++] = ledData[i++];
+                }
+            }
+
+            try
+            {
+                _socket.Send(_messageByteBuffer);
+            }
+            catch (Exception)
+            {
+            }
         }
     }
 }
