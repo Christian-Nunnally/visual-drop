@@ -18,12 +18,28 @@ namespace VisualDrop
         private int _lastlevel; //last output level
         private string _lastDevice;
 
-        public AudioSourceAnalyzer()
+        private static AudioSourceAnalyzer _instance;
+
+        public bool IsEnabled => _displayRefreshTimer.IsEnabled;
+
+        public static AudioSourceAnalyzer Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new AudioSourceAnalyzer();
+                }
+
+                return _instance;
+            }
+        }
+
+        private AudioSourceAnalyzer()
         {
             Free();
             BassNet.Registration("lgf.littlegreenflame@gmail.com", "2X5152330152222");
             _fft = new float[1024];
-            Lines = 16;
             _lastlevel = 0;
             _hanctr = 0;
             _displayRefreshTimer = new DispatcherTimer(DispatcherPriority.Render);
@@ -50,13 +66,20 @@ namespace VisualDrop
             {
                 var device = BassWasapi.BASS_WASAPI_GetDeviceInfo(i);
                 if (device.IsEnabled && device.IsLoopback)
+                {
                     deviceList.Add($"{i} - {device.name}");
+                }
             }
             return deviceList;
         }
 
         public void Enable(string deviceString)
         {
+            if (deviceString == null)
+            {
+                return;
+            }
+
             _lastDevice = deviceString;
             if (!_initialized)
             {
@@ -81,7 +104,11 @@ namespace VisualDrop
 
         public void Disable()
         {
-            if (!_initialized) return;
+            if (!_initialized)
+            {
+                return;
+            }
+
             BassWasapi.BASS_WASAPI_Stop(true);
             BassWasapi.BASS_WASAPI_Free();
             _initialized = false;
@@ -90,13 +117,17 @@ namespace VisualDrop
 
         public event Action<List<byte>> AudioDataReceived;
 
-        public int Lines { get; set; }
+        public int Lines { get; set; } = 4;
 
         //timer 
         private void _t_Tick(object sender, EventArgs e)
         {
-            var ret = BassWasapi.BASS_WASAPI_GetData(_fft, (int) BASSData.BASS_DATA_FFT2048); //get channel fft data
-            if (ret < -1) return;
+            var ret = BassWasapi.BASS_WASAPI_GetData(_fft, (int)BASSData.BASS_DATA_FFT2048); //get channel fft data
+            if (ret < -1)
+            {
+                return;
+            }
+
             int x;
             var b0 = 0;
 
@@ -104,27 +135,56 @@ namespace VisualDrop
             for (x = 0; x < Lines; x++)
             {
                 float peak = 0;
-                var b1 = (int) Math.Pow(2, x*10.0/(Lines - 1));
-                if (b1 > 1023) b1 = 1023;
-                if (b1 <= b0) b1 = b0 + 1;
+                var b1 = (int)Math.Pow(2, x * 10.0 / (Lines - 1));
+                if (b1 > 1023)
+                {
+                    b1 = 1023;
+                }
+
+                if (b1 <= b0)
+                {
+                    b1 = b0 + 1;
+                }
+
                 for (; b0 < b1; b0++)
-                    if (peak < _fft[1 + b0]) peak = _fft[1 + b0];
-                var y = (int) (Math.Sqrt(peak)*3*255 - 4);
-                if (y > 255) y = 255;
-                if (y < 0) y = 0;
-                _spectrumdata.Add((byte) y);
+                {
+                    if (peak < _fft[1 + b0])
+                    {
+                        peak = _fft[1 + b0];
+                    }
+                }
+
+                var y = (int)(Math.Sqrt(peak) * 3 * 255 - 4);
+                if (y > 255)
+                {
+                    y = 255;
+                }
+
+                if (y < 0)
+                {
+                    y = 0;
+                }
+
+                _spectrumdata.Add((byte)y);
             }
 
             AudioDataReceived?.Invoke(_spectrumdata);
             _spectrumdata.Clear();
 
             var level = BassWasapi.BASS_WASAPI_GetLevel();
-            if ((level == _lastlevel) && (level != 0)) _hanctr++;
+            if ((level == _lastlevel) && (level != 0))
+            {
+                _hanctr++;
+            }
+
             _lastlevel = level;
 
             //Required, because some programs hang the output. If the output hangs for a 75ms
             //this piece of code re initializes the output so it doesn't make a gliched sound for long.
-            if (_hanctr <= 3) return;
+            if (_hanctr <= 3)
+            {
+                return;
+            }
 
             _hanctr = 0;
             Free();
@@ -142,7 +202,10 @@ namespace VisualDrop
         //cleanup
         private static void Free()
         {
-            if (Bass.BASS_Free()) BassWasapi.BASS_WASAPI_Free();
+            if (Bass.BASS_Free())
+            {
+                BassWasapi.BASS_WASAPI_Free();
+            }
         }
     }
 }
