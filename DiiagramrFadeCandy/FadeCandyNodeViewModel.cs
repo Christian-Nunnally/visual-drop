@@ -4,6 +4,10 @@ using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using SharpDX.WIC;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using AlphaMode = SharpDX.Direct2D1.AlphaMode;
@@ -26,6 +30,7 @@ namespace DiiagramrFadeCandy
         private List<IGraphicEffect> _graphicEffects = new List<IGraphicEffect>();
 
         public bool ConnectButtonVisible { get; set; } = true;
+        public ObservableCollection<LedChannelDriver> Drivers { get; set; } = new ObservableCollection<LedChannelDriver>();
 
         private static bool FadeCandyConnected;
         private int _bitmapWidth = 8;
@@ -72,25 +77,20 @@ namespace DiiagramrFadeCandy
             get => _cachedBitmap ?? CreateAndCacheBitmap();
             set
             {
-                if (value == null)
-                {
-                    _cachedRenderTarget = null;
-                }
-
                 _cachedBitmap = value;
+                _cachedRenderTarget = null;
             }
         }
 
         private Bitmap CreateAndCacheBitmap()
         {
-            _cachedBitmap = new Bitmap(
+            Bitmap = new Bitmap(
                 wicFactory,
                 _bitmapSize.Width < 1 ? 1 : (int)_bitmapSize.Width,
                 _bitmapSize.Height < 1 ? 1 : (int)_bitmapSize.Height,
                 SharpDX.WIC.PixelFormat.Format32bppBGR,
                 BitmapCreateCacheOption.CacheOnLoad);
-            _cachedRenderTarget = null;
-            return _cachedBitmap;
+            return Bitmap;
         }
 
         private WicRenderTarget _cachedRenderTarget;
@@ -100,6 +100,9 @@ namespace DiiagramrFadeCandy
         public Terminal<int> BitmapWidthTerminal { get; private set; }
         public Terminal<int> BitmapHeightTerminal { get; private set; }
 
+        public LedChannelDriver SelectedDriver { get; private set; }
+        public bool IsDriverSelected => SelectedDriver != null;
+
         private WicRenderTarget CreateAndCacheRenderTarget()
         {
             _cachedRenderTarget = new WicRenderTarget(d2dFactory, Bitmap, renderTargetProperties);
@@ -108,37 +111,47 @@ namespace DiiagramrFadeCandy
 
         protected override void SetupNode(NodeSetup setup)
         {
-            setup.NodeSize(120, 40);
+            setup.NodeSize(160, 160);
             setup.NodeName("FadeCandy");
 
             EffectsTerminal = setup.InputTerminal<IGraphicEffect>("Effects", Direction.North);
             EffectsTerminal.DataChanged += EffectsTerminalDataChanged;
 
             BitmapWidthTerminal = setup.InputTerminal<int>("Width", Direction.West);
-            BitmapHeightTerminal = setup.InputTerminal<int>("Height", Direction.West);
             BitmapWidthTerminal.DataChanged += BitmapWidthTerminalDataChanged;
-            BitmapWidthTerminal.Data = _bitmapWidth;
-
+            BitmapWidthTerminal.Data = 64;
+            BitmapHeightTerminal = setup.InputTerminal<int>("Height", Direction.West);
             BitmapHeightTerminal.DataChanged += BitmapHeightTerminalDataChanged;
-            BitmapHeightTerminal.Data = _bitmapHeight;
+            BitmapHeightTerminal.Data = 64;
+
 
             for (int i = 0; i < _ledDrivers.Length; i++)
             {
                 _ledDrivers[i] = new LedChannelDriver
                 {
-                    Box = new RawBox(0, 0, 8, 8)
+                    Box = new RawBox(0, 0, 8, 8),
+                    Name = "pin " + i
                 };
+                Drivers.Add(_ledDrivers[i]);
             }
+
+            SelectedDriver = Drivers.First();
         }
 
         private void BitmapWidthTerminalDataChanged(int width)
         {
-            BitmapWidth = width;
+            if (width != 0)
+            {
+                BitmapWidth = width;
+            }
         }
 
         private void BitmapHeightTerminalDataChanged(int height)
         {
-            BitmapHeight = height;
+            if (height != 0)
+            {
+                BitmapHeight = height;
+            }
         }
 
         private void EffectsTerminalDataChanged(IGraphicEffect data)
@@ -169,43 +182,14 @@ namespace DiiagramrFadeCandy
             _fadeCandyClient.PutPixels(Bitmap, _ledDrivers);
         }
 
-        private void SharpDxTest()
-        {
-            var wicFactory = new ImagingFactory();
-            var d2dFactory = new SharpDX.Direct2D1.Factory();
-            const int width = 5;
-            const int height = 5;
-
-            var rectangleGeometry = new RoundedRectangleGeometry(d2dFactory, new RoundedRectangle() { RadiusX = 1, RadiusY = 1, Rect = new RawRectangleF(1, 1, 3, 3) });
-            var wicBitmap = new Bitmap(wicFactory, width, height, SharpDX.WIC.PixelFormat.Format32bppBGR, BitmapCreateCacheOption.CacheOnLoad);
-            var renderTargetProperties = new RenderTargetProperties(RenderTargetType.Default, new PixelFormat(Format.Unknown, AlphaMode.Unknown), 0, 0, RenderTargetUsage.None, FeatureLevel.Level_DEFAULT);
-            var d2dRenderTarget = new WicRenderTarget(d2dFactory, wicBitmap, renderTargetProperties);
-            var solidColorBrush = new SolidColorBrush(d2dRenderTarget, new RawColor4(1, 1, 2, 1));
-
-            d2dRenderTarget.BeginDraw();
-            d2dRenderTarget.Clear(new RawColor4(0, 0, 0, 1));
-            d2dRenderTarget.FillGeometry(rectangleGeometry, solidColorBrush, null);
-            d2dRenderTarget.EndDraw();
-
-            var buffer = new int[width * height];
-            wicBitmap.CopyPixels(buffer);
-            // var buffer = new int[4];
-            // wicBitmap.CopyPixels(new RawBox(0, 0, 2, 2), buffer);
-
-
-            var s = "";
-            foreach (var e in buffer)
-            {
-                s += $"{e.ToString("X4")}, ";
-            }
-        }
-
         public void ConnectFadeCandy()
         {
             ConnectButtonVisible = false;
             OnPropertyChanged(nameof(ConnectButtonVisible));
-            _fadeCandyClient = new FadeCandyClient("127.0.0.1", 7890, false, false);
 
+            OpenOrRestartFadeCandyServer();
+
+            _fadeCandyClient = new FadeCandyClient("127.0.0.1", 7890, false, false);
             if (FadeCandyConnected)
             {
                 return;
@@ -220,6 +204,53 @@ namespace DiiagramrFadeCandy
                     RenderFrame();
                 }
             }).Start();
+        }
+
+        public void DriverSelected(object param)
+        {
+            SelectedDriver = (LedChannelDriver)param;
+        }
+
+        private void OpenOrRestartFadeCandyServer()
+        {
+            KillProcess("fcserver");
+            StartProcess("fcserver.exe", "fcserver.exe");
+        }
+
+        private void KillProcess(string processName)
+        {
+            var processes = Process.GetProcesses().Where(p => p.ProcessName.Contains(processName));
+            foreach (var process in processes)
+            {
+                process.Kill();
+            }
+        }
+
+        private void StartProcess(string processName, string argument)
+        {
+            var enviromentPath = System.Environment.GetEnvironmentVariable("PATH");
+
+            var paths = enviromentPath.Split(';');
+            var exePath = paths.Select(x => Path.Combine(x, processName))
+                               .Where(x => File.Exists(x))
+                               .FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(exePath) == false)
+            {
+                StartProcessInBackground(exePath);
+            }
+        }
+
+        private void StartProcessInBackground(string exePath)
+        {
+            new Process
+            {
+                StartInfo = new ProcessStartInfo(exePath)
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }
+            }.Start();
         }
     }
 }

@@ -3,9 +3,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:fc="clr-namespace:DiiagramrFadeCandy"
              xmlns:s="https://github.com/canton7/Stylet"
-             d:DesignHeight="40"
-             d:DesignWidth="40"
+             d:DesignHeight="100"
+             d:DesignWidth="100"
              mc:Ignorable="d">
-    <Label Content="Effect"></Label>
+    <UserControl.Resources>
+        <ObjectDataProvider MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}"
+                            x:Key="ShapeEnumValues">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="fc:Shape" />
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </UserControl.Resources>
+    <ComboBox ItemsSource="{Binding Source={StaticResource ShapeEnumValues}}" SelectedValue="{Binding SelectedShapeString, Mode=OneWayToSource}"></ComboBox>
 </UserControl>

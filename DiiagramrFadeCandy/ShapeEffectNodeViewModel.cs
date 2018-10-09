@@ -1,80 +1,33 @@
 ﻿using DiiagramrAPI.PluginNodeApi;
-using SharpDX.Direct2D1;
-using SharpDX.Mathematics.Interop;
+using System;
 
 namespace DiiagramrFadeCandy
 {
-    public class ShapeEffectNodeViewModel : PluginNode, IGraphicEffect
+    public class ShapeEffectNodeViewModel : PluginNode
     {
-        private bool _isCachedElipseValid;
-        private float _x;
-        private float _y;
-        private float _width;
-        private float _height;
-        private bool _isCachedPositionValid;
-        private Ellipse _cachedEllipse = new Ellipse(new RawVector2(4, 4), 3, 3);
-        private Color _color = new Color(0.5f, 0.0f, 0.2f, 1.0f);
-        private RawVector2 _cachedPosition;
-
         public Terminal<bool> VisibleTerminal { get; private set; }
-        public Terminal<int> XTerminal { get; private set; }
-        public Terminal<int> YTerminal { get; private set; }
-
+        public Terminal<bool> FillTerminal { get; private set; }
+        public Terminal<float> XTerminal { get; private set; }
+        public Terminal<float> YTerminal { get; private set; }
         public Terminal<float> WidthTerminal { get; private set; }
         public Terminal<float> HeightTerminal { get; private set; }
         public Terminal<IGraphicEffect> EffectTerminal { get; private set; }
         public Terminal<Color> ColorTerminal { get; private set; }
+        public Terminal<float> BrightnessTerminal { get; private set; }
 
-        public RawVector2 Position
+        public ShapeEffect ShapeGraphic { get; set; } = new ShapeEffect();
+
+        public Shape Mode { get; set; }
+        public string SelectedShapeString
         {
-            get
-            {
-                if (_isCachedPositionValid)
-                {
-                    return _cachedPosition;
-                }
-
-                _cachedPosition = new RawVector2(_x, _y);
-                _isCachedPositionValid = true;
-                return _cachedPosition;
-            }
+            get => ShapeGraphic.Mode.ToString();
             set
             {
-                _isCachedElipseValid = false;
-                _isCachedPositionValid = true;
-                _cachedPosition = value;
-            }
-        }
-
-        public Ellipse Ellipse
-        {
-            get
-            {
-                if (_isCachedElipseValid)
+                if (Enum.TryParse(value, out Shape _mode))
                 {
-                    return _cachedEllipse;
+                    ShapeGraphic.Mode = _mode;
                 }
-
-                _cachedEllipse = new Ellipse(Position, 3, 3);
-                _isCachedElipseValid = true;
-                return _cachedEllipse;
             }
-
-            set
-            {
-                _isCachedElipseValid = true;
-                _cachedEllipse = value;
-            }
-        }
-
-        public void Draw(RenderTarget target)
-        {
-            if (!VisibleTerminal.Data)
-            {
-                return;
-            }
-
-            target.DrawEllipse(Ellipse, new SolidColorBrush(target, new RawColor4(_color.R, _color.G, _color.B, _color.A)));
         }
 
         protected override void SetupNode(NodeSetup setup)
@@ -83,17 +36,37 @@ namespace DiiagramrFadeCandy
             setup.NodeName("Shape Effect");
 
             VisibleTerminal = setup.InputTerminal<bool>("Visible", Direction.North);
+            VisibleTerminal.DataChanged += v => ShapeGraphic.Visible = v;
+            VisibleTerminal.Data = true;
+            VisibleTerminal = setup.InputTerminal<bool>("Fill", Direction.North);
+            VisibleTerminal.DataChanged += f => ShapeGraphic.Fill = f;
             VisibleTerminal.Data = true;
 
-            XTerminal = setup.InputTerminal<int>("X", Direction.West);
-            XTerminal.DataChanged += XTerminalDataChanged;
-            YTerminal = setup.InputTerminal<int>("Y", Direction.West);
-            YTerminal.DataChanged += YTerminalDataChanged;
+            XTerminal = setup.InputTerminal<float>("X", Direction.West);
+            XTerminal.Data = 4;
+            XTerminal.DataChanged += x => ShapeGraphic.X = x;
+            YTerminal = setup.InputTerminal<float>("Y", Direction.West);
+            YTerminal.Data = 4;
+            YTerminal.DataChanged += y => ShapeGraphic.Y = y;
+            WidthTerminal = setup.InputTerminal<float>("Width", Direction.East);
+            WidthTerminal.Data = 3;
+            WidthTerminal.DataChanged += w => ShapeGraphic.Width = w;
+            HeightTerminal = setup.InputTerminal<float>("Height", Direction.East);
+            HeightTerminal.Data = 3;
+            HeightTerminal.DataChanged += h => ShapeGraphic.Height = h;
+            BrightnessTerminal = setup.InputTerminal<float>("Brightness", Direction.East);
+            BrightnessTerminal.DataChanged += BrightnessTerminalDataChanged;
+            BrightnessTerminal.Data = 1.0f;
 
-            ColorTerminal = setup.InputTerminal<Color>("Color", Direction.West);
+            ColorTerminal = setup.InputTerminal<Color>("Color", Direction.North);
             ColorTerminal.DataChanged += ColorTerminalTerminalDataChanged;
             EffectTerminal = setup.OutputTerminal<IGraphicEffect>("Effect", Direction.South);
-            EffectTerminal.Data = this;
+            EffectTerminal.Data = ShapeGraphic;
+        }
+
+        private void BrightnessTerminalDataChanged(float brightness)
+        {
+            ShapeGraphic.A = brightness;
         }
 
         private void ColorTerminalTerminalDataChanged(Color color)
@@ -103,34 +76,10 @@ namespace DiiagramrFadeCandy
                 return;
             }
 
-            _color = color;
-        }
-
-        private void XTerminalDataChanged(int x)
-        {
-            _x = x;
-            _isCachedPositionValid = false;
-            _isCachedElipseValid = false;
-
-        }
-
-        private void YTerminalDataChanged(int y)
-        {
-            _y = y;
-            _isCachedPositionValid = false;
-            _isCachedElipseValid = false;
-        }
-
-        private void WidthTerminalDataChanged(float width)
-        {
-            _width = width;
-            _isCachedElipseValid = false;
-        }
-
-        private void HeightTerminalDataChanged(float height)
-        {
-            _height = height;
-            _isCachedElipseValid = false;
+            ShapeGraphic.R = color.R;
+            ShapeGraphic.G = color.G;
+            ShapeGraphic.B = color.B;
+            ShapeGraphic.A = color.A;
         }
     }
 }

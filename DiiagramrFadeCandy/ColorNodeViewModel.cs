@@ -23,7 +23,7 @@ namespace DiiagramrFadeCandy
             setup.NodeName("Color Picker");
             setup.NodeSize(60, 60);
 
-            ColorOutputTerminal = setup.OutputTerminal<Color>("Color", Direction.East);
+            ColorOutputTerminal = setup.OutputTerminal<Color>("Color", Direction.South);
 
             ColorWheelBitmap = Properties.Resources.colourwheel;
             ColorWheelBitmapImage = BitmapToImageSource(ColorWheelBitmap);

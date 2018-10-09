@@ -64,6 +64,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SimpleShapeEffect.cs" />
+    <Compile Include="TextEffectNodeViewModel.cs" />
     <Compile Include="Vector2.cs" />
     <Compile Include="Color.cs" />
     <Compile Include="ColorNodeViewModel.cs" />
@@ -72,7 +74,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ShakePositionNodeViewModel.cs" />
+    <Compile Include="SineAnimationNodeViewModel.cs" />
     <Compile Include="ShapeEffectNodeViewModel.cs" />
     <Compile Include="FadeCandyNodeViewModel.cs" />
     <Compile Include="FadeCandyClient.cs" />
@@ -90,7 +92,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="ShakePositionNodeView.xaml">
+    <Page Include="SineAnimationNodeView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="TextEffectNodeView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

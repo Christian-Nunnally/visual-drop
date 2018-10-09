@@ -6,6 +6,76 @@ namespace DiiagramrFadeCandy
 {
     public class LedChannelDriver
     {
+        public string Name { get; set; }
+
+        public int X
+        {
+            get => Box.X;
+            set => Box = new RawBox(value, Box.Y, Box.Width, Box.Height);
+        }
+        public string XText
+        {
+            get => X.ToString();
+            set
+            {
+                if (int.TryParse(value, out int result))
+                {
+                    X = result;
+                }
+            }
+        }
+
+        public int Y
+        {
+            get => Box.Y;
+            set => Box = new RawBox(Box.X, value, Box.Width, Box.Height);
+        }
+        public string YText
+        {
+            get => Y.ToString();
+            set
+            {
+                if (int.TryParse(value, out int result))
+                {
+                    Y = result;
+                }
+            }
+        }
+
+        public int Width
+        {
+            get => Box.Width;
+            set => Box = new RawBox(Box.X, Box.Y, value, Box.Height);
+        }
+        public string WidthText
+        {
+            get => Width.ToString();
+            set
+            {
+                if (int.TryParse(value, out int result))
+                {
+                    Width = result;
+                }
+            }
+        }
+
+        public int Height
+        {
+            get => Box.Height;
+            set => Box = new RawBox(Box.X, Box.Y, Box.Width, value);
+        }
+        public string HeightText
+        {
+            get => Height.ToString();
+            set
+            {
+                if (int.TryParse(value, out int result))
+                {
+                    Height = result;
+                }
+            }
+        }
+
         public RawBox Box
         {
             get => _box;
@@ -26,22 +96,27 @@ namespace DiiagramrFadeCandy
 
         public byte[] GetLedData(Bitmap bitmap)
         {
-            if (bitmap.Size.Width < Box.X + Box.Width)
-            {
-                return _messageByteBuffer;
-            }
+            //if (bitmap.Size.Width < Box.X + Box.Width)
+            //{
+            //    return _messageByteBuffer;
+            //}
 
-            if (bitmap.Size.Height < Box.Y + Box.Height)
-            {
-                return _messageByteBuffer;
-            }
+            //if (bitmap.Size.Height < Box.Y + Box.Height)
+            //{
+            //    return _messageByteBuffer;
+            //}
 
-            if (Box.X < 0)
-            {
-                return _messageByteBuffer;
-            }
+            //if (Box.X < 0)
+            //{
+            //    return _messageByteBuffer;
+            //}
 
-            if (Box.Y < 0)
+            //if (Box.Y < 0)
+            //{
+            //    return _messageByteBuffer;
+            //}
+
+            if (_intBuffer.Length <= 0)
             {
                 return _messageByteBuffer;
             }
