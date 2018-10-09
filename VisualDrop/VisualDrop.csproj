@@ -58,6 +58,7 @@
     <Compile Include="AudioDeviceInformation.cs" />
     <Compile Include="AudioSourceAnalyzer.cs" />
     <Compile Include="AudioSourceViewModel.cs" />
+    <Compile Include="SpectrumRateOfChangeViewModel.cs" />
     <Compile Include="AverageSpectrumViewModel.cs" />
     <Compile Include="LevelThresholdViewModel.cs" />
     <Compile Include="NormalizeSpectrumViewModel.cs" />
@@ -81,6 +82,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="AudioSourceView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="SpectrumRateOfChangeView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
