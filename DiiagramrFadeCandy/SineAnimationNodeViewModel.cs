@@ -20,7 +20,7 @@ namespace DiiagramrFadeCandy
 
         protected override void SetupNode(NodeSetup setup)
         {
-            setup.NodeSize(80, 80);
+            setup.NodeSize(90, 90);
             setup.NodeName("Sine");
 
             TriggerTerminal = setup.InputTerminal<bool>("Trigger", Direction.North);
@@ -66,7 +66,7 @@ namespace DiiagramrFadeCandy
             {
                 new Thread(() =>
                 {
-                    for (double d = 0; d < _quadrents * (Math.PI / 2); d += _quadrents * (Math.PI / 2) / _frames)
+                    for (double d = 0.0; d < _quadrents * (Math.PI / 2.0); d += _quadrents * (Math.PI / 2.0) / _frames)
                     {
                         ValueTerminal.Data = (float)(_startPosition + (AmplitudeTerminal.Data * Math.Sin(d)));
                         Thread.Sleep(_timeBetweenFrames);

@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 
 namespace DiiagramrFadeCandy
 {
+    [Serializable]
     public enum Shape
     {
         Rectangle,
@@ -15,7 +16,6 @@ namespace DiiagramrFadeCandy
     [Serializable]
     public class ShapeEffect : IGraphicEffect
     {
-
         [DataMember]
         public Shape Mode { get; set; } = Shape.Ellipse;
 
@@ -27,6 +27,9 @@ namespace DiiagramrFadeCandy
 
         [DataMember]
         public float Y { get; set; }
+
+        [DataMember]
+        public float Thickness { get; set; }
 
         [DataMember]
         public float Width { get; set; }
@@ -44,7 +47,7 @@ namespace DiiagramrFadeCandy
         public float B { get; set; } = 0.1f;
 
         [DataMember]
-        public float A { get; set; } = 0.1f;
+        public float A { get; set; } = 0.05f;
 
         [DataMember]
         public bool Fill { get; set; } = true;
@@ -57,47 +60,51 @@ namespace DiiagramrFadeCandy
             }
 
             var brush = new SolidColorBrush(target, new RawColor4(R, G, B, A));
-
+            var xRadius = Width * target.Size.Width / 2.0f;
+            var yRadius = Height * target.Size.Height / 2.0f;
+            var left = X * target.Size.Width - xRadius;
+            var top = Y * target.Size.Height - yRadius;
+            var right = X * target.Size.Width + xRadius;
+            var bottom = Y * target.Size.Height + yRadius;
+            var rectangle = new RawRectangleF(left, top, right, bottom);
             switch (Mode)
             {
                 case Shape.Rectangle:
-                    var rectangle = new RawRectangleF(X, Y, X + Width, Y + Height);
                     if (Fill)
                     {
                         target.FillRectangle(rectangle, brush);
                     }
                     else
                     {
-                        target.DrawRectangle(rectangle, brush);
+                        target.DrawRectangle(rectangle, brush, Thickness);
                     }
                     break;
+
                 case Shape.Ellipse:
-                    var radiusX = Width / 2.0f;
-                    var radiusY = Height / 2.0f;
-                    var ellipse = new Ellipse(new RawVector2(X + radiusX, Y + radiusY), radiusX, radiusY);
+                    var center = new RawVector2(X * target.Size.Width, Y * target.Size.Height);
+                    var ellipse = new Ellipse(center, xRadius, yRadius);
                     if (Fill)
                     {
                         target.FillEllipse(ellipse, brush);
                     }
                     else
                     {
-                        target.DrawEllipse(ellipse, brush);
+                        target.DrawEllipse(ellipse, brush, Thickness);
                     }
                     break;
+
                 case Shape.RoundedRectangle:
-                    radiusX = Width / 4.0f;
-                    radiusY = Height / 4.0f;
+                    var xCornerRadius = xRadius / 2.0f;
+                    var yCornerRadius = yRadius / 2.0f;
                     if (Fill)
                     {
-                        rectangle = new RawRectangleF(X, Y, X + Width, Y + Height);
-                        var roundedRectangle = new RoundedRectangle { Rect = rectangle, RadiusX = radiusX, RadiusY = radiusY };
+                        var roundedRectangle = new RoundedRectangle { Rect = rectangle, RadiusX = xCornerRadius, RadiusY = yCornerRadius };
                         target.FillRoundedRectangle(roundedRectangle, brush);
                     }
                     else
                     {
-                        rectangle = new RawRectangleF(X, Y, X + Width, Y + Height);
-                        var roundedRectangle = new RoundedRectangle { Rect = rectangle, RadiusX = radiusX, RadiusY = radiusY };
-                        target.DrawRoundedRectangle(roundedRectangle, brush);
+                        var roundedRectangle = new RoundedRectangle { Rect = rectangle, RadiusX = xCornerRadius, RadiusY = yCornerRadius };
+                        target.DrawRoundedRectangle(roundedRectangle, brush, Thickness);
                     }
                     break;
             }

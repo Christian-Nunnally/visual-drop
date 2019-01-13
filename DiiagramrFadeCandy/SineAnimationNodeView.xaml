@@ -8,5 +8,5 @@
              d:DesignWidth="40"
              mc:Ignorable="d"
              Padding="0">
-    <Label HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="Sin(x)" FontFamily="Consolas" FontSize="10" Padding="0"/>
+    <Label HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="Sin(x)" FontFamily="Consolas" FontSize="10" Padding="0" />
 </UserControl>

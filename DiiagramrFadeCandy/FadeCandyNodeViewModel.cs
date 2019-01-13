@@ -1,185 +1,61 @@
 ﻿using DiiagramrAPI.PluginNodeApi;
-using SharpDX.Direct2D1;
-using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using SharpDX.WIC;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Windows;
-using AlphaMode = SharpDX.Direct2D1.AlphaMode;
-using Bitmap = SharpDX.WIC.Bitmap;
-using PixelFormat = SharpDX.Direct2D1.PixelFormat;
 
 namespace DiiagramrFadeCandy
 {
     public class FadeCandyNodeViewModel : PluginNode
     {
-        private static readonly ImagingFactory wicFactory = new ImagingFactory();
-        private static readonly SharpDX.Direct2D1.Factory d2dFactory = new SharpDX.Direct2D1.Factory();
-        private static readonly PixelFormat pixelFormat = new PixelFormat(Format.B8G8R8A8_UNorm_SRgb, AlphaMode.Unknown);
-        private static readonly RenderTargetProperties renderTargetProperties = new RenderTargetProperties(RenderTargetType.Default, pixelFormat, 0, 0, RenderTargetUsage.None, FeatureLevel.Level_DEFAULT);
-        private static readonly bool ClearBeforeFrame = true;
-        private static readonly RawColor4 Black = new RawColor4(0, 0, 0, 1);
-        private readonly LedChannelDriver[] _ledDrivers = new LedChannelDriver[8];
-        private FadeCandyClient _fadeCandyClient;
-
-        private List<IGraphicEffect> _graphicEffects = new List<IGraphicEffect>();
-
-        public bool ConnectButtonVisible { get; set; } = true;
-        public ObservableCollection<LedChannelDriver> Drivers { get; set; } = new ObservableCollection<LedChannelDriver>();
-
         private static bool FadeCandyConnected;
-        private int _bitmapWidth = 8;
-        private int _bitmapHeight = 8;
-
-        [PluginNodeSetting]
-        public int BitmapWidth
-        {
-            get => _bitmapWidth;
-            set
-            {
-                _bitmapWidth = value;
-                BitmapSize = new Size(_bitmapWidth, _bitmapHeight);
-            }
-
-        }
-
-        [PluginNodeSetting]
-        public int BitmapHeight
-        {
-            get => _bitmapHeight;
-            set
-            {
-                _bitmapHeight = value;
-                BitmapSize = new Size(_bitmapWidth, _bitmapHeight);
-            }
-
-        }
-
-        private Size _bitmapSize = new Size(8, 8);
-        public Size BitmapSize
-        {
-            get => _bitmapSize;
-            set
-            {
-                _bitmapSize = value;
-                Bitmap = null;
-            }
-        }
-
-        private Bitmap _cachedBitmap;
-        private Bitmap Bitmap
-        {
-            get => _cachedBitmap ?? CreateAndCacheBitmap();
-            set
-            {
-                _cachedBitmap = value;
-                _cachedRenderTarget = null;
-            }
-        }
-
-        private Bitmap CreateAndCacheBitmap()
-        {
-            Bitmap = new Bitmap(
-                wicFactory,
-                _bitmapSize.Width < 1 ? 1 : (int)_bitmapSize.Width,
-                _bitmapSize.Height < 1 ? 1 : (int)_bitmapSize.Height,
-                SharpDX.WIC.PixelFormat.Format32bppBGR,
-                BitmapCreateCacheOption.CacheOnLoad);
-            return Bitmap;
-        }
-
-        private WicRenderTarget _cachedRenderTarget;
-        public WicRenderTarget RenderTarget => _cachedRenderTarget ?? CreateAndCacheRenderTarget();
-
-        public Terminal<IGraphicEffect> EffectsTerminal { get; private set; }
-        public Terminal<int> BitmapWidthTerminal { get; private set; }
-        public Terminal<int> BitmapHeightTerminal { get; private set; }
-
-        public LedChannelDriver SelectedDriver { get; private set; }
-        public bool IsDriverSelected => SelectedDriver != null;
-
-        private WicRenderTarget CreateAndCacheRenderTarget()
-        {
-            _cachedRenderTarget = new WicRenderTarget(d2dFactory, Bitmap, renderTargetProperties);
-            return _cachedRenderTarget;
-        }
+        private const int NumberOfDrivers = 8;
+        private FadeCandyClient _fadeCandyClient;
+        public bool ConnectButtonVisible { get; set; } = true;
+        public LedChannelDriver[] _ledDrivers = new LedChannelDriver[NumberOfDrivers];
+        public ObservableCollection<LedChannelDriver> EastDrivers { get; set; } = new ObservableCollection<LedChannelDriver>();
+        public ObservableCollection<LedChannelDriver> WestDrivers { get; set; } = new ObservableCollection<LedChannelDriver>();
+        public List<Terminal<LedChannelDriver>> DriverTerminals { get; private set; } = new List<Terminal<LedChannelDriver>>();
+        public LedChannelDriver SelectedDriver { get; set; }
 
         protected override void SetupNode(NodeSetup setup)
         {
-            setup.NodeSize(160, 160);
-            setup.NodeName("FadeCandy");
+            setup.NodeSize(150, 150);
+            setup.NodeName("Fade Candy");
 
-            EffectsTerminal = setup.InputTerminal<IGraphicEffect>("Effects", Direction.North);
-            EffectsTerminal.DataChanged += EffectsTerminalDataChanged;
-
-            BitmapWidthTerminal = setup.InputTerminal<int>("Width", Direction.West);
-            BitmapWidthTerminal.DataChanged += BitmapWidthTerminalDataChanged;
-            BitmapWidthTerminal.Data = 64;
-            BitmapHeightTerminal = setup.InputTerminal<int>("Height", Direction.West);
-            BitmapHeightTerminal.DataChanged += BitmapHeightTerminalDataChanged;
-            BitmapHeightTerminal.Data = 64;
-
-
-            for (int i = 0; i < _ledDrivers.Length; i++)
+            for (int i = 0; i < NumberOfDrivers / 2; i++)
             {
                 _ledDrivers[i] = new LedChannelDriver
                 {
                     Box = new RawBox(0, 0, 8, 8),
                     Name = "pin " + i
                 };
-                Drivers.Add(_ledDrivers[i]);
+                var driverTerminal = setup.OutputTerminal<LedChannelDriver>("Led Driver " + i, Direction.West);
+                WestDrivers.Add(_ledDrivers[i]);
+                DriverTerminals.Add(driverTerminal);
+                driverTerminal.Data = _ledDrivers[i];
             }
 
-            SelectedDriver = Drivers.First();
-        }
-
-        private void BitmapWidthTerminalDataChanged(int width)
-        {
-            if (width != 0)
+            for (int i = NumberOfDrivers - 1; i >= NumberOfDrivers / 2; i--)
             {
-                BitmapWidth = width;
-            }
-        }
-
-        private void BitmapHeightTerminalDataChanged(int height)
-        {
-            if (height != 0)
-            {
-                BitmapHeight = height;
-            }
-        }
-
-        private void EffectsTerminalDataChanged(IGraphicEffect data)
-        {
-            if (data == null)
-            {
-                return;
+                _ledDrivers[i] = new LedChannelDriver
+                {
+                    Box = new RawBox(0, 0, 8, 8),
+                    Name = "pin " + i
+                };
+                var driverTerminal = setup.OutputTerminal<LedChannelDriver>("Led Driver " + i, Direction.East);
+                EastDrivers.Add(_ledDrivers[i]);
+                DriverTerminals.Add(driverTerminal);
+                driverTerminal.Data = _ledDrivers[i];
             }
 
-            _graphicEffects.Add(data);
-        }
-
-        private void RenderFrame()
-        {
-            RenderTarget.BeginDraw();
-            if (ClearBeforeFrame)
-            {
-                RenderTarget.Clear(Black);
-            }
-
-            foreach (var effect in _graphicEffects)
-            {
-                effect.Draw(RenderTarget);
-            }
-
-            RenderTarget.EndDraw();
-
-            _fadeCandyClient.PutPixels(Bitmap, _ledDrivers);
+            _ledDrivers[0].X = 8;
+            _ledDrivers[7].X = 16;
+            _ledDrivers[6].X = 24;
+            SelectedDriver = _ledDrivers[0];
         }
 
         public void ConnectFadeCandy()
@@ -201,14 +77,9 @@ namespace DiiagramrFadeCandy
                 while (true)
                 {
                     Thread.Sleep(33);
-                    RenderFrame();
+                    _fadeCandyClient.PutPixels(_ledDrivers);
                 }
             }).Start();
-        }
-
-        public void DriverSelected(object param)
-        {
-            SelectedDriver = (LedChannelDriver)param;
         }
 
         private void OpenOrRestartFadeCandyServer()
@@ -251,6 +122,18 @@ namespace DiiagramrFadeCandy
                     UseShellExecute = false
                 }
             }.Start();
+        }
+
+        public void DriverSelected(object param)
+        {
+            if (SelectedDriver == param)
+            {
+                SelectedDriver.IsSelected = !SelectedDriver.IsSelected;
+                return;
+            }
+            SelectedDriver.IsSelected = false;
+            SelectedDriver = (LedChannelDriver)param;
+            SelectedDriver.IsSelected = true;
         }
     }
 }

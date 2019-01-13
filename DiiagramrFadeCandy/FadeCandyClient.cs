@@ -1,19 +1,9 @@
-﻿using SharpDX.WIC;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Net;
 using System.Net.Sockets;
 
 namespace DiiagramrFadeCandy
 {
-    public class RgbTupleList<T1, T2, T3> : List<Tuple<T1, T2, T3>>
-    {
-        public void Add(T1 item, T2 item2, T3 item3)
-        {
-            Add(new Tuple<T1, T2, T3>(item, item2, item3));
-        }
-    }
-
     public class FadeCandyClient : IDisposable
     {
         private const int LedsPerDevice = 64;
@@ -31,7 +21,7 @@ namespace DiiagramrFadeCandy
         public string _ip;
         public int _port;
         public Socket _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
+        private int frameNumber;
         private readonly byte[] _messageByteBuffer = new byte[TotalNumberOfLeds * BytesPerLed + HeaderByteLength];
 
         public FadeCandyClient(string ip, int port, bool long_connecton = true, bool verbose = false)
@@ -54,7 +44,7 @@ namespace DiiagramrFadeCandy
             Console.WriteLine(message);
         }
 
-        private bool ensureConnected()
+        private bool EnsureConnected()
         {
             if (_socket.Connected)
             {
@@ -72,7 +62,6 @@ namespace DiiagramrFadeCandy
                     Debug("Ensure Connected: ....success");
                     return true;
                 }
-
                 catch (SocketException e)
                 {
                     Console.WriteLine(e.Message);
@@ -92,7 +81,7 @@ namespace DiiagramrFadeCandy
 
         private bool CanConnect()
         {
-            bool success = ensureConnected();
+            bool success = EnsureConnected();
             if (!_long_connection)
             {
                 Dispose();
@@ -100,10 +89,10 @@ namespace DiiagramrFadeCandy
             return success;
         }
 
-        public void PutPixels(Bitmap bitmap, LedChannelDriver[] drivers)
+        public void PutPixels(LedChannelDriver[] drivers)
         {
             Debug("put pixels: connecting");
-            bool is_connected = ensureConnected();
+            bool is_connected = EnsureConnected();
             if (!is_connected)
             {
                 Debug("Put pixels not connected. Ignoring these pixels.");
@@ -117,7 +106,7 @@ namespace DiiagramrFadeCandy
                     continue;
                 }
 
-                var ledData = driver.GetLedData(bitmap);
+                var ledData = driver.GetLedData(frameNumber++);
                 for (int i = 0; i < LedsPerDevice * BytesPerLed;)
                 {
                     _messageByteBuffer[bufferPosition++] = ledData[i++];

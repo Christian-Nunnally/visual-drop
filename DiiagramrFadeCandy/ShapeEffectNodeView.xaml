@@ -18,5 +18,8 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </UserControl.Resources>
-    <ComboBox ItemsSource="{Binding Source={StaticResource ShapeEnumValues}}" SelectedValue="{Binding SelectedShapeString, Mode=OneWayToSource}"></ComboBox>
+    <ComboBox
+        ItemsSource="{Binding Source={StaticResource ShapeEnumValues}}"
+        SelectedValue="{Binding SelectedShapeString, Mode=TwoWay}"
+        VerticalContentAlignment="Center" />
 </UserControl>
