@@ -51,7 +51,7 @@ namespace VisualDrop
             _initialized = false;
 
             Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_UPDATETHREADS, false);
-            var result = Bass.BASS_Init(0, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
+            var result = Bass.BASS_Init(0, 22050, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
             if (!result)
             {
                 var errorCode = Bass.BASS_ErrorGetCode();
@@ -119,7 +119,7 @@ namespace VisualDrop
 
         public int Lines { get; set; } = 4;
 
-        //timer 
+        //timer
         private void _t_Tick(object sender, EventArgs e)
         {
             var ret = BassWasapi.BASS_WASAPI_GetData(_fft, (int)BASSData.BASS_DATA_FFT2048); //get channel fft data

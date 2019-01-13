@@ -1,5 +1,6 @@
 ﻿using PropertyChanged;
 using System;
+using System.Runtime.Serialization;
 
 namespace VisualDrop
 {
@@ -9,9 +10,11 @@ namespace VisualDrop
     {
         private string _name;
 
+        [DataMember]
         public string Name
         {
             get => _name;
+
             set
             {
                 _name = value;
