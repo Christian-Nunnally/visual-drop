@@ -4,9 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:s="https://github.com/canton7/Stylet"
+             xmlns:diiagramrfadecandy="clr-namespace:DiiagramrFadeCandy"
              d:DesignHeight="40"
              d:DesignWidth="40"
              mc:Ignorable="d"
              Padding="0">
-    <Label HorizontalAlignment="Center" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="Sin(x)" FontFamily="Consolas" FontSize="10" Padding="0" />
+    <UserControl.Resources>
+        <diiagramrfadecandy:PointsToPathConverter x:Key="PointsToPathConverter" />
+    </UserControl.Resources>
+    <Path Data="{Binding UIPoints, Converter={StaticResource ResourceKey=PointsToPathConverter}}"
+          StrokeThickness="2"
+          Stroke="Black"
+          StrokeMiterLimit="1"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Margin="5">
+    </Path>
 </UserControl>

@@ -1,6 +1,7 @@
 ﻿using SharpDX.Direct2D1;
 using SharpDX.Mathematics.Interop;
 using System;
+using System.Numerics;
 using System.Runtime.Serialization;
 
 namespace DiiagramrFadeCandy
@@ -27,6 +28,9 @@ namespace DiiagramrFadeCandy
 
         [DataMember]
         public float Y { get; set; }
+
+        [DataMember]
+        public float Rotation { get; set; }
 
         [DataMember]
         public float Thickness { get; set; }
@@ -62,16 +66,26 @@ namespace DiiagramrFadeCandy
             var brush = new SolidColorBrush(target, new RawColor4(R, G, B, A));
             var xRadius = Width * target.Size.Width / 2.0f;
             var yRadius = Height * target.Size.Height / 2.0f;
-            var left = X * target.Size.Width - xRadius;
-            var top = Y * target.Size.Height - yRadius;
-            var right = X * target.Size.Width + xRadius;
-            var bottom = Y * target.Size.Height + yRadius;
+            var absoluteX = X * target.Size.Width;
+            var absoluteY = Y * target.Size.Height;
+            var left = absoluteX - xRadius;
+            var top = absoluteY - yRadius;
+            var right = absoluteX + xRadius;
+            var bottom = absoluteY + yRadius;
             var rectangle = new RawRectangleF(left, top, right, bottom);
+
+            var oldMatrix = target.Transform;
+            var radians = Rotation * (float)Math.PI / 180f;
+            var centerVector = new Vector2(absoluteX, absoluteY);
+            var matrix = Matrix3x2.CreateRotation(radians, centerVector);
+            target.Transform = new RawMatrix3x2(matrix.M11, matrix.M12, matrix.M21, matrix.M22, matrix.M31, matrix.M32);
+
             switch (Mode)
             {
                 case Shape.Rectangle:
                     if (Fill)
                     {
+
                         target.FillRectangle(rectangle, brush);
                     }
                     else
@@ -108,6 +122,7 @@ namespace DiiagramrFadeCandy
                     }
                     break;
             }
+            target.Transform = oldMatrix;
         }
     }
 }

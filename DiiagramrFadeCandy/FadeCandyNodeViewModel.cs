@@ -52,6 +52,7 @@ namespace DiiagramrFadeCandy
                 driverTerminal.Data = _ledDrivers[i];
             }
 
+
             _ledDrivers[0].X = 8;
             _ledDrivers[7].X = 16;
             _ledDrivers[6].X = 24;

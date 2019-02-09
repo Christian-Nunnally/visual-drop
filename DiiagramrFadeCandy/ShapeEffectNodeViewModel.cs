@@ -9,6 +9,7 @@ namespace DiiagramrFadeCandy
         public Terminal<bool> FillTerminal { get; private set; }
         public Terminal<float> XTerminal { get; private set; }
         public Terminal<float> YTerminal { get; private set; }
+        public Terminal<float> RotationTerminal { get; private set; }
         public Terminal<float> ThicknessTerminal { get; private set; }
         public Terminal<float> WidthTerminal { get; private set; }
         public Terminal<float> HeightTerminal { get; private set; }
@@ -51,6 +52,9 @@ namespace DiiagramrFadeCandy
             YTerminal = setup.InputTerminal<float>("Y", Direction.West);
             YTerminal.Data = 0.5f;
             YTerminal.DataChanged += y => ShapeGraphic.Y = y;
+            RotationTerminal = setup.InputTerminal<float>("Degrees Rotation", Direction.West);
+            RotationTerminal.Data = 0.0f;
+            RotationTerminal.DataChanged += r => ShapeGraphic.Rotation = r;
             ThicknessTerminal = setup.InputTerminal<float>("Thickness", Direction.West);
             ThicknessTerminal.Data = 0.5f;
             ThicknessTerminal.DataChanged += t => ShapeGraphic.Thickness = t;

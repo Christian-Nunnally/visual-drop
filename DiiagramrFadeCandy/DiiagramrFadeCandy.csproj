@@ -56,6 +56,7 @@
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -68,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GraphicEffect\SpectrumEffect.cs" />
+    <Compile Include="PointsToPathConverter.cs" />
     <Compile Include="SpectrumEffectNodeViewModel.cs" />
     <Compile Include="LedMatrixViewModel.cs" />
     <Compile Include="GraphicEffect\SimpleShapeEffect.cs" />

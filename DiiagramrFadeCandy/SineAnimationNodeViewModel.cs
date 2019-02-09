@@ -1,6 +1,7 @@
 ﻿using DiiagramrAPI.PluginNodeApi;
 using System;
 using System.Threading;
+using System.Windows;
 
 namespace DiiagramrFadeCandy
 {
@@ -11,6 +12,7 @@ namespace DiiagramrFadeCandy
         private float _startPosition = 4;
         private float _quadrents = 2;
 
+        public Point[] UIPoints { get; set; }
         public Terminal<bool> TriggerTerminal { get; private set; }
         public Terminal<float> AmplitudeTerminal { get; private set; }
         public Terminal<float> ValueTerminal { get; private set; }
@@ -48,6 +50,17 @@ namespace DiiagramrFadeCandy
         private void QuadrentsTerminalDataChanged(float quadrents)
         {
             _quadrents = quadrents;
+
+            UIPoints = new Point[_frames];
+            int frame = 0;
+            for (double d = 0.0; d < _quadrents * (Math.PI / 2.0); d += _quadrents * (Math.PI / 2.0) / _frames)
+            {
+                var x = frame * (Width / _frames);
+                var y = Height / 2 * Math.Sin(d);
+                UIPoints[frame] = new Point(x, y);
+                frame++;
+                OnPropertyChanged(nameof(UIPoints));
+            }
         }
 
         private void FramesTerminalDataChanged(int frames)

@@ -8,10 +8,15 @@ namespace DiiagramrFadeCandy
     [Serializable]
     public class LedChannelDriver
     {
+        // The FadeCandy limits the number of leds per channel to 64.
+        private const int MaxChannelSize = 64;
+
         [DataMember]
         public string Name { get; set; }
 
         public bool IsSelected { get; set; }
+
+        public bool AlternateStrideDirection { get; set; }
 
         public event Action<int> UpdateFrame;
 
@@ -103,7 +108,7 @@ namespace DiiagramrFadeCandy
             {
                 _box = value;
                 _boxArea = _box.Width * _box.Height;
-                _intBuffer = new int[_boxArea];
+                _intBuffer = new int[Math.Min(_boxArea, MaxChannelSize)];
                 _intermediateByteBuffer = new byte[_intBuffer.Length * sizeof(int)];
             }
         }
@@ -126,32 +131,38 @@ namespace DiiagramrFadeCandy
                 return _messageByteBuffer;
             }
 
-            if (AttachedBitmap.Size.Width < Box.X + Box.Width)
-            {
-                return _messageByteBuffer;
-            }
-
-            if (AttachedBitmap.Size.Height < Box.Y + Box.Height)
+            // Outside of the frame.
+            if (AttachedBitmap.Size.Width < Box.X || AttachedBitmap.Size.Height < Box.Y || Box.X + Box.Width < 0 || Box.Y + Box.Height < 0)
             {
                 return _messageByteBuffer;
             }
 
             if (Box.X < 0)
             {
-                return _messageByteBuffer;
+                X = 0;
             }
 
             if (Box.Y < 0)
             {
-                return _messageByteBuffer;
+                Y = 0;
             }
 
-            if (_intBuffer.Length <= 0)
+            if (AttachedBitmap.Size.Width < Box.X + Box.Width)
+            {
+                Width = AttachedBitmap.Size.Width - Box.X;
+            }
+
+            if (AttachedBitmap.Size.Height < Box.Y + Box.Height)
+            {
+                Height = AttachedBitmap.Size.Height - Box.Y;
+            }
+
+            if (_intBuffer.Length <= 0 || _intBuffer.Length > MaxChannelSize)
             {
                 return _messageByteBuffer;
             }
 
-            if (Box.Y * Box.X > 64)
+            if (Box.Width * Box.Height > NumberOfLeds)
             {
                 return _messageByteBuffer;
             }
@@ -159,14 +170,30 @@ namespace DiiagramrFadeCandy
             AttachedBitmap.CopyPixels(Box, _intBuffer);
             Buffer.BlockCopy(_intBuffer, 0, _intermediateByteBuffer, 0, _intermediateByteBuffer.Length);
             var j = 0;
-            for (int i = 0; i < _intermediateByteBuffer.Length; i += 4)
+            for (int row = 0; row < Height; row++)
             {
-                _messageByteBuffer[j++] = _intermediateByteBuffer[i + 2];
-                _messageByteBuffer[j++] = _intermediateByteBuffer[i + 1];
-                _messageByteBuffer[j++] = _intermediateByteBuffer[i];
+                for (int col = 0; col < Width; col++)
+                {
+                    var pixelIndex = row * Width + col;
+                    var invertedRowPixelIndex = (row * Width) + (Width - col - 1);
+                    var oddRow = row % 2 == 0;
+                    var copyFromPixelIndex = AlternateStrideDirection
+                        ? oddRow ? pixelIndex : invertedRowPixelIndex
+                        : pixelIndex;
+                    CopyIntermediateBufferToMessageBuffer(pixelIndex, copyFromPixelIndex);
+                }
             }
 
             return _messageByteBuffer;
+        }
+
+        private void CopyIntermediateBufferToMessageBuffer(int toPixelIndex, int fromPixelIndex)
+        {
+            var toPixelColorIndex = toPixelIndex * 3;
+            var fromPixelColorIndex = fromPixelIndex * 4;
+            _messageByteBuffer[toPixelColorIndex + 0] = _intermediateByteBuffer[fromPixelColorIndex + 2];
+            _messageByteBuffer[toPixelColorIndex + 1] = _intermediateByteBuffer[fromPixelColorIndex + 1];
+            _messageByteBuffer[toPixelColorIndex + 2] = _intermediateByteBuffer[fromPixelColorIndex + 0];
         }
 
         public Bitmap AttachedBitmap { get => _attachedBitmap; set => _attachedBitmap = value; }

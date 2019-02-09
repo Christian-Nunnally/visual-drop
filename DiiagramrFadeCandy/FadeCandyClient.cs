@@ -67,6 +67,11 @@ namespace DiiagramrFadeCandy
                     Console.WriteLine(e.Message);
                     return false;
                 }
+                catch (InvalidOperationException e)
+                {
+                    Console.WriteLine(e.Message);
+                    return false;
+                }
             }
         }
 
