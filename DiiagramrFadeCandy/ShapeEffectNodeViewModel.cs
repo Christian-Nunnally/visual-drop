@@ -1,21 +1,21 @@
-﻿using DiiagramrAPI.PluginNodeApi;
+﻿using DiiagramrAPI.Diagram;
 using System;
 
 namespace DiiagramrFadeCandy
 {
-    public class ShapeEffectNodeViewModel : PluginNode
+    public class ShapeEffectNodeViewModel : Node
     {
-        public Terminal<bool> VisibleTerminal { get; private set; }
-        public Terminal<bool> FillTerminal { get; private set; }
-        public Terminal<float> XTerminal { get; private set; }
-        public Terminal<float> YTerminal { get; private set; }
-        public Terminal<float> RotationTerminal { get; private set; }
-        public Terminal<float> ThicknessTerminal { get; private set; }
-        public Terminal<float> WidthTerminal { get; private set; }
-        public Terminal<float> HeightTerminal { get; private set; }
-        public Terminal<IGraphicEffect> EffectTerminal { get; private set; }
-        public Terminal<Color> ColorTerminal { get; private set; }
-        public Terminal<float> BrightnessTerminal { get; private set; }
+        public TypedTerminal<bool> VisibleTerminal { get; private set; }
+        public TypedTerminal<bool> FillTerminal { get; private set; }
+        public TypedTerminal<float> XTerminal { get; private set; }
+        public TypedTerminal<float> YTerminal { get; private set; }
+        public TypedTerminal<float> RotationTerminal { get; private set; }
+        public TypedTerminal<float> ThicknessTerminal { get; private set; }
+        public TypedTerminal<float> WidthTerminal { get; private set; }
+        public TypedTerminal<float> HeightTerminal { get; private set; }
+        public TypedTerminal<GraphicEffect> EffectTerminal { get; private set; }
+        public TypedTerminal<Color> ColorTerminal { get; private set; }
+        public TypedTerminal<float> BrightnessTerminal { get; private set; }
 
         public ShapeEffect ShapeGraphic { get; set; } = new ShapeEffect();
 
@@ -70,7 +70,7 @@ namespace DiiagramrFadeCandy
 
             ColorTerminal = setup.InputTerminal<Color>("Color", Direction.North);
             ColorTerminal.DataChanged += ColorTerminalTerminalDataChanged;
-            EffectTerminal = setup.OutputTerminal<IGraphicEffect>("Effect", Direction.South);
+            EffectTerminal = setup.OutputTerminal<GraphicEffect>("Effect", Direction.South);
             EffectTerminal.Data = ShapeGraphic;
 
             SelectedShapeString = Shape.Rectangle.ToString();

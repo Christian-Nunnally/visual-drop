@@ -1,4 +1,6 @@
-﻿using SharpDX.Mathematics.Interop;
+﻿using DiiagramrAPI.Diagram;
+using PropertyChanged;
+using SharpDX.Mathematics.Interop;
 using SharpDX.WIC;
 using System;
 using System.Runtime.Serialization;
@@ -6,7 +8,8 @@ using System.Runtime.Serialization;
 namespace DiiagramrFadeCandy
 {
     [Serializable]
-    public class LedChannelDriver
+    [AddINotifyPropertyChangedInterface]
+    public class LedChannelDriver : IWireableType
     {
         // The FadeCandy limits the number of leds per channel to 64.
         private const int MaxChannelSize = 64;
@@ -16,7 +19,7 @@ namespace DiiagramrFadeCandy
 
         public bool IsSelected { get; set; }
 
-        public bool AlternateStrideDirection { get; set; }
+        public bool AlternateStrideDirection { get; set; } = false;
 
         public event Action<int> UpdateFrame;
 
@@ -169,7 +172,6 @@ namespace DiiagramrFadeCandy
 
             AttachedBitmap.CopyPixels(Box, _intBuffer);
             Buffer.BlockCopy(_intBuffer, 0, _intermediateByteBuffer, 0, _intermediateByteBuffer.Length);
-            var j = 0;
             for (int row = 0; row < Height; row++)
             {
                 for (int col = 0; col < Width; col++)
@@ -194,6 +196,11 @@ namespace DiiagramrFadeCandy
             _messageByteBuffer[toPixelColorIndex + 0] = _intermediateByteBuffer[fromPixelColorIndex + 2];
             _messageByteBuffer[toPixelColorIndex + 1] = _intermediateByteBuffer[fromPixelColorIndex + 1];
             _messageByteBuffer[toPixelColorIndex + 2] = _intermediateByteBuffer[fromPixelColorIndex + 0];
+        }
+
+        public System.Windows.Media.Color GetTypeColor()
+        {
+            return new System.Windows.Media.Color() { R = 85, G = 128, B = 85, A = 255 };
         }
 
         public Bitmap AttachedBitmap { get => _attachedBitmap; set => _attachedBitmap = value; }

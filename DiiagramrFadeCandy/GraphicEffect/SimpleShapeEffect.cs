@@ -15,7 +15,7 @@ namespace DiiagramrFadeCandy
     }
 
     [Serializable]
-    public class ShapeEffect : IGraphicEffect
+    public class ShapeEffect : GraphicEffect
     {
         [DataMember]
         public Shape Mode { get; set; } = Shape.Ellipse;
@@ -56,7 +56,7 @@ namespace DiiagramrFadeCandy
         [DataMember]
         public bool Fill { get; set; } = true;
 
-        public void Draw(RenderTarget target)
+        public override void Draw(RenderTarget target)
         {
             if (!Visible)
             {

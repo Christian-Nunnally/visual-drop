@@ -1,11 +1,11 @@
-﻿using DiiagramrAPI.PluginNodeApi;
+﻿using DiiagramrAPI.Diagram;
 using System;
 using System.Threading;
 using System.Windows;
 
 namespace DiiagramrFadeCandy
 {
-    public class SineAnimationNodeViewModel : PluginNode
+    public class SineAnimationNodeViewModel : Node
     {
         private int _frames = 10;
         private readonly int _timeBetweenFrames = 30;
@@ -13,12 +13,12 @@ namespace DiiagramrFadeCandy
         private float _quadrents = 2;
 
         public Point[] UIPoints { get; set; }
-        public Terminal<bool> TriggerTerminal { get; private set; }
-        public Terminal<float> AmplitudeTerminal { get; private set; }
-        public Terminal<float> ValueTerminal { get; private set; }
-        public Terminal<float> OffsetTerminal { get; private set; }
-        public Terminal<int> FramesTerminal { get; private set; }
-        public Terminal<float> QuadrentsTerminal { get; private set; }
+        public TypedTerminal<bool> TriggerTerminal { get; private set; }
+        public TypedTerminal<float> AmplitudeTerminal { get; private set; }
+        public TypedTerminal<float> ValueTerminal { get; private set; }
+        public TypedTerminal<float> OffsetTerminal { get; private set; }
+        public TypedTerminal<int> FramesTerminal { get; private set; }
+        public TypedTerminal<float> QuadrentsTerminal { get; private set; }
 
         protected override void SetupNode(NodeSetup setup)
         {
@@ -55,6 +55,11 @@ namespace DiiagramrFadeCandy
             int frame = 0;
             for (double d = 0.0; d < _quadrents * (Math.PI / 2.0); d += _quadrents * (Math.PI / 2.0) / _frames)
             {
+                if (frame == UIPoints.Length)
+                {
+                    break;
+                }
+
                 var x = frame * (Width / _frames);
                 var y = Height / 2 * Math.Sin(d);
                 UIPoints[frame] = new Point(x, y);

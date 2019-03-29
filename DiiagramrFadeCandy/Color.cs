@@ -1,11 +1,12 @@
-﻿using SharpDX.Mathematics.Interop;
+﻿using DiiagramrAPI.Diagram;
+using SharpDX.Mathematics.Interop;
 using System;
 using System.Runtime.Serialization;
 
 namespace DiiagramrFadeCandy
 {
     [Serializable]
-    public class Color : ISerializable
+    public class Color : ISerializable, IWireableType
     {
         public float R { get; set; }
         public float G { get; set; }
@@ -22,12 +23,16 @@ namespace DiiagramrFadeCandy
             A = (float)info.GetValue(nameof(A), typeof(float));
         }
 
+        public Color()
+        {
+        }
+
         public Color(float r, float g, float b, float a)
         {
-            this.R = r;
-            this.G = g;
-            this.B = b;
-            this.A = a;
+            R = r;
+            G = g;
+            B = b;
+            A = a;
         }
 
         public override string ToString()
@@ -42,6 +47,11 @@ namespace DiiagramrFadeCandy
             info.AddValue(nameof(G), G);
             info.AddValue(nameof(B), B);
             info.AddValue(nameof(A), A);
+        }
+
+        public System.Windows.Media.Color GetTypeColor()
+        {
+            return new System.Windows.Media.Color() { R = 128, G = 100, B = 100, A = 255 };
         }
     }
 }

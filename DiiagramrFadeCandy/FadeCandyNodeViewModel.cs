@@ -1,4 +1,4 @@
-﻿using DiiagramrAPI.PluginNodeApi;
+﻿using DiiagramrAPI.Diagram;
 using SharpDX.Mathematics.Interop;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace DiiagramrFadeCandy
 {
-    public class FadeCandyNodeViewModel : PluginNode
+    public class FadeCandyNodeViewModel : Node
     {
         private static bool FadeCandyConnected;
         private const int NumberOfDrivers = 8;
@@ -18,12 +18,12 @@ namespace DiiagramrFadeCandy
         public LedChannelDriver[] _ledDrivers = new LedChannelDriver[NumberOfDrivers];
         public ObservableCollection<LedChannelDriver> EastDrivers { get; set; } = new ObservableCollection<LedChannelDriver>();
         public ObservableCollection<LedChannelDriver> WestDrivers { get; set; } = new ObservableCollection<LedChannelDriver>();
-        public List<Terminal<LedChannelDriver>> DriverTerminals { get; private set; } = new List<Terminal<LedChannelDriver>>();
+        public List<TypedTerminal<LedChannelDriver>> DriverTerminals { get; private set; } = new List<TypedTerminal<LedChannelDriver>>();
         public LedChannelDriver SelectedDriver { get; set; }
 
         protected override void SetupNode(NodeSetup setup)
         {
-            setup.NodeSize(150, 150);
+            setup.NodeSize(150, 180);
             setup.NodeName("Fade Candy");
 
             for (int i = 0; i < NumberOfDrivers / 2; i++)

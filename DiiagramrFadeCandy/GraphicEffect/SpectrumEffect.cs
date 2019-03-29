@@ -6,12 +6,15 @@ using System.Runtime.Serialization;
 namespace DiiagramrFadeCandy
 {
     [Serializable]
-    public class SpectrumEffect : IGraphicEffect
+    public class SpectrumEffect : GraphicEffect
     {
         [DataMember]
         public byte[] SpectrumData { get; set; }
 
-        public void Draw(RenderTarget target)
+        [DataMember]
+        public Color Color { get; set; }
+
+        public override void Draw(RenderTarget target)
         {
             if (SpectrumData == null)
             {
@@ -23,7 +26,7 @@ namespace DiiagramrFadeCandy
             var barWidth = targetWidth / SpectrumData.Length;
             for (int i = 0; i < SpectrumData.Length; i++)
             {
-                var brush = new SolidColorBrush(target, new RawColor4(1f, 1f, 1f, .5f));
+                var brush = new SolidColorBrush(target, new RawColor4(Color.R, Color.G, Color.B, Color.A));
                 var left = i * barWidth;
                 var top = targetHeight;
                 var right = i * barWidth + barWidth;

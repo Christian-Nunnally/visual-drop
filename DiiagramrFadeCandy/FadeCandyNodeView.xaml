@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:s="https://github.com/canton7/Stylet"
-             d:DesignHeight="160"
-             d:DesignWidth="160"
+             d:DesignHeight="180"
+             d:DesignWidth="150"
              mc:Ignorable="d">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="btv" />
@@ -40,6 +40,7 @@
                 <TextBox Margin="2" Text="{Binding SelectedDriver.WidthText, Mode=TwoWay}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Width="40" />
                 <Label Content="Height" HorizontalAlignment="Center" Padding="0" FontSize="9" />
                 <TextBox Margin="2" Text="{Binding SelectedDriver.HeightText, Mode=TwoWay}" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Width="40" />
+                <CheckBox Margin="2" IsChecked="{Binding SelectedDriver.AlternateStrideDirection}" Content="AlternateStride" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Width="40" />
             </StackPanel>
             <ItemsControl Grid.Column="2" Grid.Row="1" ItemsSource="{Binding EastDrivers}">
                 <ItemsControl.ItemTemplate>

@@ -1,4 +1,4 @@
-﻿using DiiagramrAPI.PluginNodeApi;
+﻿using DiiagramrAPI.Diagram;
 using System;
 using System.Drawing;
 using System.IO;
@@ -9,15 +9,15 @@ using System.Windows.Media.Imaging;
 
 namespace DiiagramrFadeCandy
 {
-    public class ColorNodeViewModel : PluginNode
+    public class ColorNodeViewModel : Node
     {
-        public Terminal<bool> PickRandomTriggerTerminal { get; private set; }
-        public Terminal<Color> ColorOutputTerminal { get; private set; }
+        public TypedTerminal<bool> PickRandomTriggerTerminal { get; private set; }
+        public TypedTerminal<Color> ColorOutputTerminal { get; private set; }
         public Bitmap ColorWheelBitmap { get; set; }
         public BitmapImage ColorWheelBitmapImage { get; set; }
         public SolidColorBrush SelectedColorBrush { get; set; }
 
-        [PluginNodeSetting]
+        [NodeSetting]
         public Color C { get; set; } = new Color(0, 0, 0, 0);
 
         protected override void SetupNode(NodeSetup setup)

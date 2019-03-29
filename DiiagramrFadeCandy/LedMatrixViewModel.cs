@@ -1,4 +1,5 @@
-﻿using DiiagramrAPI.PluginNodeApi;
+﻿using DiiagramrAPI.Diagram;
+using SharpDX;
 using SharpDX.Direct2D1;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
@@ -19,7 +20,7 @@ using WicBitmap = SharpDX.WIC.Bitmap;
 
 namespace DiiagramrFadeCandy
 {
-    public class LedMatrixViewModel : PluginNode
+    public class LedMatrixViewModel : Node
     {
         private static readonly ImagingFactory wicFactory = new ImagingFactory();
         private static readonly SharpDX.Direct2D1.Factory d2dFactory = new SharpDX.Direct2D1.Factory();
@@ -29,12 +30,12 @@ namespace DiiagramrFadeCandy
         private static readonly RawColor4 Black = new RawColor4(0, 0, 0, 1);
 
         public ObservableCollection<LedChannelDriver> Drivers { get; set; } = new ObservableCollection<LedChannelDriver>();
-        public ObservableCollection<IGraphicEffect> Effects { get; set; } = new ObservableCollection<IGraphicEffect>();
+        public ObservableCollection<GraphicEffect> Effects { get; set; } = new ObservableCollection<GraphicEffect>();
 
         private int _bitmapWidth = 8;
         private int _bitmapHeight = 8;
 
-        [PluginNodeSetting]
+        [NodeSetting]
         public int BitmapWidth
         {
             get => _bitmapWidth;
@@ -46,7 +47,7 @@ namespace DiiagramrFadeCandy
             }
         }
 
-        [PluginNodeSetting]
+        [NodeSetting]
         public int BitmapHeight
         {
             get => _bitmapHeight;
@@ -86,27 +87,34 @@ namespace DiiagramrFadeCandy
 
         private WicBitmap CreateAndCacheBitmap()
         {
-            WicBitmap = new WicBitmap(
-                wicFactory,
-                _bitmapSize.Width < 1 ? 1 : (int)_bitmapSize.Width,
-                _bitmapSize.Height < 1 ? 1 : (int)_bitmapSize.Height,
-                SharpDX.WIC.PixelFormat.Format32bppBGR,
-                BitmapCreateCacheOption.CacheOnLoad);
-            foreach (var driver in Drivers)
+            try
             {
-                driver.AttachedBitmap = WicBitmap;
+                WicBitmap = new WicBitmap(
+                    wicFactory,
+                    _bitmapSize.Width < 1 ? 1 : (int)_bitmapSize.Width,
+                    _bitmapSize.Height < 1 ? 1 : (int)_bitmapSize.Height,
+                    SharpDX.WIC.PixelFormat.Format32bppBGR,
+                    BitmapCreateCacheOption.CacheOnLoad);
+                foreach (var driver in Drivers)
+                {
+                    driver.AttachedBitmap = WicBitmap;
+                }
+                return WicBitmap;
             }
-            return WicBitmap;
+            catch (SharpDXException e)
+            {
+                return null;
+            }
         }
 
         private WicRenderTarget _cachedRenderTarget;
         private int _lastRenderedFrame;
 
         public WicRenderTarget RenderTarget => _cachedRenderTarget ?? CreateAndCacheRenderTarget();
-        public Terminal<IGraphicEffect> EffectsTerminal { get; private set; }
-        public Terminal<LedChannelDriver> LedDriverTerminal { get; private set; }
-        public Terminal<int> BitmapWidthInputTerminal { get; private set; }
-        public Terminal<int> BitmapHeightInputTerminal { get; private set; }
+        public TypedTerminal<GraphicEffect> EffectsTerminal { get; private set; }
+        public TypedTerminal<LedChannelDriver> LedDriverTerminal { get; private set; }
+        public TypedTerminal<int> BitmapWidthInputTerminal { get; private set; }
+        public TypedTerminal<int> BitmapHeightInputTerminal { get; private set; }
         public LedChannelDriver SelectedDriver { get; private set; }
         public BitmapSource BitmapImageSource { get; set; }
         public bool IsDriverSelected => SelectedDriver != null;
@@ -123,7 +131,7 @@ namespace DiiagramrFadeCandy
             setup.NodeName("Led Matrix");
             setup.EnableResize();
 
-            EffectsTerminal = setup.InputTerminal<IGraphicEffect>("Effects", Direction.North);
+            EffectsTerminal = setup.InputTerminal<GraphicEffect>("Effects", Direction.North);
             EffectsTerminal.DataChanged += EffectsTerminalDataChanged;
 
             LedDriverTerminal = setup.InputTerminal<LedChannelDriver>("Led Drivers", Direction.South);
@@ -168,7 +176,7 @@ namespace DiiagramrFadeCandy
             }
         }
 
-        private void EffectsTerminalDataChanged(IGraphicEffect data)
+        private void EffectsTerminalDataChanged(GraphicEffect data)
         {
             if (data == null)
             {
@@ -176,7 +184,7 @@ namespace DiiagramrFadeCandy
             }
 
             Effects.Clear();
-            foreach (var effect in EffectsTerminal.UnderlyingTerminal.TerminalModel.ConnectedWires.Select(w => w.SourceTerminal.Data).OfType<IGraphicEffect>())
+            foreach (var effect in EffectsTerminal.UnderlyingTerminal.Model.ConnectedWires.Select(w => w.SourceTerminal.Data).OfType<GraphicEffect>())
             {
                 Effects.Add(effect);
             }
@@ -196,7 +204,7 @@ namespace DiiagramrFadeCandy
             }
             Drivers.Clear();
 
-            foreach (var driver in LedDriverTerminal.UnderlyingTerminal.TerminalModel.ConnectedWires.Select(w => w.SourceTerminal.Data).OfType<LedChannelDriver>())
+            foreach (var driver in LedDriverTerminal.UnderlyingTerminal.Model.ConnectedWires.Select(w => w.SourceTerminal.Data).OfType<LedChannelDriver>())
             {
                 Drivers.Add(driver);
                 driver.AttachedBitmap = WicBitmap;
