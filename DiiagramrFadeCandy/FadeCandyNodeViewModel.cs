@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Windows;
+using System.Windows.Input;
 
 namespace DiiagramrFadeCandy
 {
@@ -16,47 +18,36 @@ namespace DiiagramrFadeCandy
         private FadeCandyClient _fadeCandyClient;
         public bool ConnectButtonVisible { get; set; } = true;
         public LedChannelDriver[] _ledDrivers = new LedChannelDriver[NumberOfDrivers];
-        public ObservableCollection<LedChannelDriver> EastDrivers { get; set; } = new ObservableCollection<LedChannelDriver>();
-        public ObservableCollection<LedChannelDriver> WestDrivers { get; set; } = new ObservableCollection<LedChannelDriver>();
+        public ObservableCollection<LedChannelDriver> Drivers { get; set; } = new ObservableCollection<LedChannelDriver>();
         public List<TypedTerminal<LedChannelDriver>> DriverTerminals { get; private set; } = new List<TypedTerminal<LedChannelDriver>>();
         public LedChannelDriver SelectedDriver { get; set; }
+        public bool IsDriverSelected => SelectedDriver != null;
+        public double DriverButtonWidthOnView { get; set; }
+        public string ServerStatusString { get; set; }
 
         protected override void SetupNode(NodeSetup setup)
         {
-            setup.NodeSize(150, 180);
+            setup.NodeSize(180, 180);
             setup.NodeName("Fade Candy");
+            Drivers.CollectionChanged += Drivers_CollectionChanged;
 
-            for (int i = 0; i < NumberOfDrivers / 2; i++)
+            for (int i = 0; i < NumberOfDrivers; i++)
             {
                 _ledDrivers[i] = new LedChannelDriver
                 {
                     Box = new RawBox(0, 0, 8, 8),
                     Name = "pin " + i
                 };
-                var driverTerminal = setup.OutputTerminal<LedChannelDriver>("Led Driver " + i, Direction.West);
-                WestDrivers.Add(_ledDrivers[i]);
+                var driverTerminal = setup.OutputTerminal<LedChannelDriver>("Led Driver " + i, Direction.North);
+                Drivers.Add(_ledDrivers[i]);
                 DriverTerminals.Add(driverTerminal);
                 driverTerminal.Data = _ledDrivers[i];
             }
+        }
 
-            for (int i = NumberOfDrivers - 1; i >= NumberOfDrivers / 2; i--)
-            {
-                _ledDrivers[i] = new LedChannelDriver
-                {
-                    Box = new RawBox(0, 0, 8, 8),
-                    Name = "pin " + i
-                };
-                var driverTerminal = setup.OutputTerminal<LedChannelDriver>("Led Driver " + i, Direction.East);
-                EastDrivers.Add(_ledDrivers[i]);
-                DriverTerminals.Add(driverTerminal);
-                driverTerminal.Data = _ledDrivers[i];
-            }
-
-
-            _ledDrivers[0].X = 8;
-            _ledDrivers[7].X = 16;
-            _ledDrivers[6].X = 24;
-            SelectedDriver = _ledDrivers[0];
+        private void Drivers_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            DriverButtonWidthOnView = Drivers.Count == 0 ? 0 : ((Width - 10) / Drivers.Count) - 2;
         }
 
         public void ConnectFadeCandy()
@@ -79,6 +70,7 @@ namespace DiiagramrFadeCandy
                 {
                     Thread.Sleep(33);
                     _fadeCandyClient.PutPixels(_ledDrivers);
+                    ServerStatusString = _fadeCandyClient.Status;
                 }
             }).Start();
         }
@@ -125,16 +117,46 @@ namespace DiiagramrFadeCandy
             }.Start();
         }
 
-        public void DriverSelected(object param)
+        public void SelectDriver(LedChannelDriver driver)
         {
-            if (SelectedDriver == param)
+            if (driver == null)
             {
-                SelectedDriver.IsSelected = !SelectedDriver.IsSelected;
+                SelectedDriver.IsSelected = false;
+                SelectedDriver = null;
                 return;
             }
-            SelectedDriver.IsSelected = false;
-            SelectedDriver = (LedChannelDriver)param;
+            else if (driver == SelectedDriver)
+            {
+                SelectDriver(null);
+                return;
+            }
+            if (SelectedDriver != null)
+            {
+                SelectedDriver.IsSelected = false;
+            }
+            SelectedDriver = driver;
             SelectedDriver.IsSelected = true;
+        }
+
+        public void MouseEnterSourceButton(object sender, MouseEventArgs e)
+        {
+        }
+
+        public void MouseLeaveSourceButton(object sender, MouseEventArgs e)
+        {
+        }
+
+        public void MouseDownSourceButton(object sender, MouseEventArgs e)
+        {
+            var ledDriver = GetLedChannelDriverFromSender(sender);
+            SelectDriver(ledDriver);
+        }
+
+        private LedChannelDriver GetLedChannelDriverFromSender(object sender)
+        {
+            return sender is FrameworkElement frameworkElement
+                ? frameworkElement.DataContext as LedChannelDriver
+                : null;
         }
     }
 }

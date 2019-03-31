@@ -18,8 +18,9 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
     </UserControl.Resources>
-    <ComboBox
-        ItemsSource="{Binding Source={StaticResource ShapeEnumValues}}"
-        SelectedValue="{Binding SelectedShapeString, Mode=TwoWay}"
-        VerticalContentAlignment="Center" />
+    <StackPanel>
+        <Button Content="Rectangle" Command="{s:Action PickRectangle}"/>
+        <Button Content="Rounded Rectangle" Command="{s:Action PickRoundedRectangle}"/>
+        <Button Content="Ellipse" Command="{s:Action PickEllipse}"/>
+    </StackPanel>
 </UserControl>

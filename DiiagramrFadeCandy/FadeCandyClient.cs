@@ -19,6 +19,7 @@ namespace DiiagramrFadeCandy
         public bool _verbose;
         public bool _long_connection;
         public string _ip;
+        public string Status;
         public int _port;
         public Socket _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         private int frameNumber;
@@ -65,11 +66,13 @@ namespace DiiagramrFadeCandy
                 catch (SocketException e)
                 {
                     Console.WriteLine(e.Message);
+                    Status = "Socket Error";
                     return false;
                 }
                 catch (InvalidOperationException e)
                 {
                     Console.WriteLine(e.Message);
+                    Status = "Invalid Operation";
                     return false;
                 }
             }
@@ -82,6 +85,7 @@ namespace DiiagramrFadeCandy
             {
                 _socket.Dispose();
             }
+            Status = "Disconnected";
         }
 
         private bool CanConnect()
@@ -101,7 +105,10 @@ namespace DiiagramrFadeCandy
             if (!is_connected)
             {
                 Debug("Put pixels not connected. Ignoring these pixels.");
+                Status = "Disconnected";
+                return;
             }
+            Status = "Connected";
 
             int bufferPosition = HeaderByteLength;
             foreach (var driver in drivers)

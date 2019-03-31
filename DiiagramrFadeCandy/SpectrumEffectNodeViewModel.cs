@@ -29,10 +29,7 @@ namespace DiiagramrFadeCandy
 
         private void SignalInputChanged(byte[] data)
         {
-            if (data != null)
-            {
-                SpectrumEffect.SpectrumData = data;
-            }
+            SpectrumEffect.SpectrumData = data;
         }
     }
 }

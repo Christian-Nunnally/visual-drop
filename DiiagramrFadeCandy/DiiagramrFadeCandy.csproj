@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="GraphicEffect\GraphicEffect.cs" />
     <Compile Include="GraphicEffect\SpectrumEffect.cs" />
+    <Compile Include="ILedDataProvider.cs" />
     <Compile Include="PointsToPathConverter.cs" />
     <Compile Include="SpectrumEffectNodeViewModel.cs" />
     <Compile Include="LedMatrixViewModel.cs" />
@@ -137,6 +138,9 @@
       <Project>{27b53540-1ffb-490c-9db1-d829179869ea}</Project>
       <Name>DiiagramrAPI</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\colorpicker.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

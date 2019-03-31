@@ -15,23 +15,69 @@ namespace DiiagramrFadeCandy
         public TypedTerminal<Color> ColorOutputTerminal { get; private set; }
         public Bitmap ColorWheelBitmap { get; set; }
         public BitmapImage ColorWheelBitmapImage { get; set; }
+        public TypedTerminal<float> RedInputTerminal { get; private set; }
+        public TypedTerminal<float> BlueInputTerminal { get; private set; }
+        public TypedTerminal<float> GreenInputTerminal { get; private set; }
+        public TypedTerminal<float> AlphaInputTerminal { get; private set; }
         public SolidColorBrush SelectedColorBrush { get; set; }
+        public string ClickPoint { get; set; }
 
-        [NodeSetting]
-        public Color C { get; set; } = new Color(0, 0, 0, 0);
+        public bool IsColorPickerVisible { get; set; }
 
         protected override void SetupNode(NodeSetup setup)
         {
             setup.NodeName("Color Picker");
             setup.NodeSize(60, 60);
 
-            PickRandomTriggerTerminal = setup.InputTerminal<bool>("Pick Random", Direction.North);
+            PickRandomTriggerTerminal = setup.InputTerminal<bool>("Pick Random", Direction.East);
             PickRandomTriggerTerminal.DataChanged += PickRandomTriggerTerminal_DataChanged;
 
             ColorOutputTerminal = setup.OutputTerminal<Color>("Color", Direction.South);
 
             ColorWheelBitmap = Properties.Resources.lightcolorspectrum;
             ColorWheelBitmapImage = BitmapToImageSource(ColorWheelBitmap);
+
+            RedInputTerminal = setup.InputTerminal<float>("Red", Direction.North);
+            BlueInputTerminal = setup.InputTerminal<float>("Blue", Direction.North);
+            GreenInputTerminal = setup.InputTerminal<float>("Green", Direction.North);
+            AlphaInputTerminal = setup.InputTerminal<float>("Alpha", Direction.West);
+
+            RedInputTerminal.DataChanged += RedInputTerminal_DataChanged;
+            RedInputTerminal.DataChanged += GreenInputTerminal_DataChanged;
+            RedInputTerminal.DataChanged += BlueInputTerminal_DataChanged;
+            RedInputTerminal.DataChanged += AlphaInputTerminal_DataChanged;
+        }
+
+        private void RedInputTerminal_DataChanged(float data)
+        {
+            if (ColorOutputTerminal.Data != null)
+            {
+                SetColorOnTerminal(data, ColorOutputTerminal.Data.G, ColorOutputTerminal.Data.B, ColorOutputTerminal.Data.A);
+            }
+        }
+
+        private void GreenInputTerminal_DataChanged(float data)
+        {
+            if (ColorOutputTerminal.Data != null)
+            {
+                SetColorOnTerminal(ColorOutputTerminal.Data.R, data, ColorOutputTerminal.Data.B, ColorOutputTerminal.Data.A);
+            }
+        }
+
+        private void BlueInputTerminal_DataChanged(float data)
+        {
+            if (ColorOutputTerminal.Data != null)
+            {
+                SetColorOnTerminal(ColorOutputTerminal.Data.R, ColorOutputTerminal.Data.G, data, ColorOutputTerminal.Data.A);
+            }
+        }
+
+        private void AlphaInputTerminal_DataChanged(float data)
+        {
+            if (ColorOutputTerminal.Data != null)
+            {
+                SetColorOnTerminal(ColorOutputTerminal.Data.R, ColorOutputTerminal.Data.G, ColorOutputTerminal.Data.B, data);
+            }
         }
 
         private void PickRandomTriggerTerminal_DataChanged(bool data)
@@ -74,8 +120,7 @@ namespace DiiagramrFadeCandy
                         floatB = 0.3f / 255.0f * randomBytes[2];
                     }
                 }
-                ColorOutputTerminal.Data = new Color(floatR, floatG, floatB, 255);
-                SelectedColorBrush = new SolidColorBrush(new System.Windows.Media.Color() { R = randomBytes[0], G = randomBytes[1], B = randomBytes[2] });
+                SetColorOnTerminal(floatR, floatG, floatB, 1.0f);
             }
         }
 
@@ -105,7 +150,7 @@ namespace DiiagramrFadeCandy
             }
             else
             {
-                position = new System.Windows.Point(-1, -1);
+                position = new System.Windows.Point(-3, -3);
             }
 
             if (Width == double.NaN || Width == 0)
@@ -121,14 +166,31 @@ namespace DiiagramrFadeCandy
             var xRelativeToBitmap = ColorWheelBitmap.Width / Width * position.X;
             var yRelativeToBitmap = ColorWheelBitmap.Height / Height * position.Y;
 
+            ClickPoint = $"{position.X.ToString("0,0")}, {position.Y.ToString("0,0")}";
+
             var color = ColorWheelBitmap.GetPixel((int)xRelativeToBitmap, (int)yRelativeToBitmap);
 
             var floatR = 1.0f / 255.0f * color.R;
             var floatG = 1.0f / 255.0f * color.G;
             var floatB = 1.0f / 255.0f * color.B;
             var floatA = 1.0f / 255.0f * color.A;
+            SetColorOnTerminal(floatR, floatG, floatB, floatA);
+        }
+
+        private void SetColorOnTerminal(float floatR, float floatG, float floatB, float floatA)
+        {
             ColorOutputTerminal.Data = new Color(floatR, floatG, floatB, floatA);
-            SelectedColorBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+            SelectedColorBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(floatR * 255.0), (byte)(floatG * 255.0), (byte)(floatB * 255.0), (byte)(floatA * 255.0)));
+        }
+
+        protected override void MouseEnteredNode()
+        {
+            IsColorPickerVisible = true;
+        }
+
+        protected override void MouseLeftNode()
+        {
+            IsColorPickerVisible = false;
         }
     }
 }

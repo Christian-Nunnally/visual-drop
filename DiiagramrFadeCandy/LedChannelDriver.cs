@@ -1,7 +1,6 @@
 ﻿using DiiagramrAPI.Diagram;
 using PropertyChanged;
 using SharpDX.Mathematics.Interop;
-using SharpDX.WIC;
 using System;
 using System.Runtime.Serialization;
 
@@ -17,6 +16,7 @@ namespace DiiagramrFadeCandy
         [DataMember]
         public string Name { get; set; }
 
+        internal ILedDataProvider ImageDataProvider { get; set; }
         public bool IsSelected { get; set; }
 
         public bool AlternateStrideDirection { get; set; } = false;
@@ -123,19 +123,14 @@ namespace DiiagramrFadeCandy
         private RawBox _box = new RawBox();
         private int _boxArea;
 
-        [NonSerialized]
-        private Bitmap _attachedBitmap;
-
         public byte[] GetLedData(int frameNumber)
         {
-            UpdateFrame?.Invoke(frameNumber);
-            if (AttachedBitmap == null)
+            if (!ImageDataProvider?.HasData() ?? true)
             {
                 return _messageByteBuffer;
             }
 
-            // Outside of the frame.
-            if (AttachedBitmap.Size.Width < Box.X || AttachedBitmap.Size.Height < Box.Y || Box.X + Box.Width < 0 || Box.Y + Box.Height < 0)
+            if (IsLedBoxOutsideOfFrame())
             {
                 return _messageByteBuffer;
             }
@@ -150,14 +145,14 @@ namespace DiiagramrFadeCandy
                 Y = 0;
             }
 
-            if (AttachedBitmap.Size.Width < Box.X + Box.Width)
+            if (ImageDataProvider.ImageWidth < Box.X + Box.Width)
             {
-                Width = AttachedBitmap.Size.Width - Box.X;
+                Width = ImageDataProvider.ImageWidth - Box.X;
             }
 
-            if (AttachedBitmap.Size.Height < Box.Y + Box.Height)
+            if (ImageDataProvider.ImageHeight < Box.Y + Box.Height)
             {
-                Height = AttachedBitmap.Size.Height - Box.Y;
+                Height = ImageDataProvider.ImageHeight - Box.Y;
             }
 
             if (_intBuffer.Length <= 0 || _intBuffer.Length > MaxChannelSize)
@@ -170,7 +165,7 @@ namespace DiiagramrFadeCandy
                 return _messageByteBuffer;
             }
 
-            AttachedBitmap.CopyPixels(Box, _intBuffer);
+            ImageDataProvider.CopyPixels(Box, _intBuffer);
             Buffer.BlockCopy(_intBuffer, 0, _intermediateByteBuffer, 0, _intermediateByteBuffer.Length);
             for (int row = 0; row < Height; row++)
             {
@@ -189,6 +184,11 @@ namespace DiiagramrFadeCandy
             return _messageByteBuffer;
         }
 
+        private bool IsLedBoxOutsideOfFrame()
+        {
+            return ImageDataProvider.ImageWidth < Box.X || ImageDataProvider.ImageHeight < Box.Y || Box.X + Box.Width < 0 || Box.Y + Box.Height < 0;
+        }
+
         private void CopyIntermediateBufferToMessageBuffer(int toPixelIndex, int fromPixelIndex)
         {
             var toPixelColorIndex = toPixelIndex * 3;
@@ -202,7 +202,5 @@ namespace DiiagramrFadeCandy
         {
             return new System.Windows.Media.Color() { R = 85, G = 128, B = 85, A = 255 };
         }
-
-        public Bitmap AttachedBitmap { get => _attachedBitmap; set => _attachedBitmap = value; }
     }
 }

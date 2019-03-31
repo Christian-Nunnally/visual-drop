@@ -5,25 +5,36 @@ using System.Windows;
 
 namespace DiiagramrFadeCandy
 {
+    public enum AnimationFunction
+    {
+        Sine,
+        Cosine
+    }
+
     public class SineAnimationNodeViewModel : Node
     {
-        private int _frames = 10;
-        private readonly int _timeBetweenFrames = 30;
-        private float _startPosition = 4;
-        private float _quadrents = 2;
+        private const double HalfPI = Math.PI / 2.0;
+        private int _frames = 30;
+        private readonly int _timeBetweenFrames = 33;
+        private float _startPosition = 0;
+        private float _quadrents = 4;
+        private AnimationFunction _function = AnimationFunction.Sine;
 
+        private double CircleQuadrents => _quadrents * HalfPI;
         public Point[] UIPoints { get; set; }
+        public Point[] HeightPoints { get; set; }
         public TypedTerminal<bool> TriggerTerminal { get; private set; }
         public TypedTerminal<float> AmplitudeTerminal { get; private set; }
         public TypedTerminal<float> ValueTerminal { get; private set; }
         public TypedTerminal<float> OffsetTerminal { get; private set; }
         public TypedTerminal<int> FramesTerminal { get; private set; }
         public TypedTerminal<float> QuadrentsTerminal { get; private set; }
+        public TypedTerminal<AnimationFunction> FunctionTerminal { get; private set; }
 
         protected override void SetupNode(NodeSetup setup)
         {
-            setup.NodeSize(90, 90);
-            setup.NodeName("Sine");
+            setup.NodeSize(60, 60);
+            setup.NodeName("Animation");
 
             TriggerTerminal = setup.InputTerminal<bool>("Trigger", Direction.North);
             TriggerTerminal.DataChanged += TriggerTerminalDataChanged;
@@ -45,15 +56,33 @@ namespace DiiagramrFadeCandy
             QuadrentsTerminal = setup.InputTerminal<float>("Quadrents", Direction.South);
             QuadrentsTerminal.Data = _quadrents;
             QuadrentsTerminal.DataChanged += QuadrentsTerminalDataChanged;
+            QuadrentsTerminalDataChanged(_quadrents);
+
+            // FunctionTerminal = setup.InputTerminal<AnimationFunction>("Function", Direction.South);
+            // FunctionTerminal.Data = _function;
+            // FunctionTerminal.DataChanged += FunctionTerminalDataChanged;
+        }
+
+        private void FunctionTerminalDataChanged(AnimationFunction data)
+        {
+            _function = data;
+            RenderFunctionOnView();
         }
 
         private void QuadrentsTerminalDataChanged(float quadrents)
         {
             _quadrents = quadrents;
+            RenderFunctionOnView();
+        }
 
+        private void RenderFunctionOnView()
+        {
             UIPoints = new Point[_frames];
             int frame = 0;
-            for (double d = 0.0; d < _quadrents * (Math.PI / 2.0); d += _quadrents * (Math.PI / 2.0) / _frames)
+            var incrementAmount = CircleQuadrents / (_frames - 1);
+            var minValue = Height;
+            var minValueX = 0.0;
+            for (double d = 0.0; d < CircleQuadrents + incrementAmount; d += incrementAmount)
             {
                 if (frame == UIPoints.Length)
                 {
@@ -61,16 +90,27 @@ namespace DiiagramrFadeCandy
                 }
 
                 var x = frame * (Width / _frames);
-                var y = Height / 2 * Math.Sin(d);
+                var adjustedHeight = Height - 10;
+                var y = (adjustedHeight / 2) + (Math.Sin(d) * (adjustedHeight / 2));
                 UIPoints[frame] = new Point(x, y);
                 frame++;
-                OnPropertyChanged(nameof(UIPoints));
+
+                if (minValue > y)
+                {
+                    minValue = y;
+                    minValueX = x;
+                }
             }
+
+            HeightPoints = new Point[] { new Point(minValueX, Height / 2), new Point(minValueX, minValue) };
+            OnPropertyChanged(nameof(HeightPoints));
+            OnPropertyChanged(nameof(UIPoints));
         }
 
         private void FramesTerminalDataChanged(int frames)
         {
             _frames = frames;
+            QuadrentsTerminalDataChanged(_quadrents);
         }
 
         private void OffsetTerminalDataChanged(float offset)
@@ -84,7 +124,7 @@ namespace DiiagramrFadeCandy
             {
                 new Thread(() =>
                 {
-                    for (double d = 0.0; d < _quadrents * (Math.PI / 2.0); d += _quadrents * (Math.PI / 2.0) / _frames)
+                    for (double d = 0.0; d <= CircleQuadrents; d += CircleQuadrents / (_frames - 1))
                     {
                         ValueTerminal.Data = (float)(_startPosition + (AmplitudeTerminal.Data * Math.Sin(d)));
                         Thread.Sleep(_timeBetweenFrames);

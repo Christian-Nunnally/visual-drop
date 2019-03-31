@@ -1,5 +1,4 @@
 ﻿using DiiagramrAPI.Diagram;
-using System;
 
 namespace DiiagramrFadeCandy
 {
@@ -19,24 +18,9 @@ namespace DiiagramrFadeCandy
 
         public ShapeEffect ShapeGraphic { get; set; } = new ShapeEffect();
 
-        public Shape Mode { get; set; }
-
-        public string SelectedShapeString
-        {
-            get => ShapeGraphic.Mode.ToString();
-
-            set
-            {
-                if (Enum.TryParse(value, out Shape _mode))
-                {
-                    ShapeGraphic.Mode = _mode;
-                }
-            }
-        }
-
         protected override void SetupNode(NodeSetup setup)
         {
-            setup.NodeSize(120, 120);
+            setup.NodeSize(90, 90);
             setup.NodeName("Shape Effect");
 
             VisibleTerminal = setup.InputTerminal<bool>("Visible", Direction.North);
@@ -72,8 +56,6 @@ namespace DiiagramrFadeCandy
             ColorTerminal.DataChanged += ColorTerminalTerminalDataChanged;
             EffectTerminal = setup.OutputTerminal<GraphicEffect>("Effect", Direction.South);
             EffectTerminal.Data = ShapeGraphic;
-
-            SelectedShapeString = Shape.Rectangle.ToString();
         }
 
         private void BrightnessTerminalDataChanged(float brightness)
@@ -92,6 +74,21 @@ namespace DiiagramrFadeCandy
             ShapeGraphic.G = color.G;
             ShapeGraphic.B = color.B;
             ShapeGraphic.A = color.A;
+        }
+
+        public void PickRectangle()
+        {
+            ShapeGraphic.Mode = Shape.Rectangle;
+        }
+
+        public void PickRoundedRectangle()
+        {
+            ShapeGraphic.Mode = Shape.RoundedRectangle;
+        }
+
+        public void PickEllipse()
+        {
+            ShapeGraphic.Mode = Shape.Ellipse;
         }
     }
 }
