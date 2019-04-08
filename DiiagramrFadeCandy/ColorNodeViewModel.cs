@@ -19,8 +19,8 @@ namespace DiiagramrFadeCandy
         public TypedTerminal<float> BlueInputTerminal { get; private set; }
         public TypedTerminal<float> GreenInputTerminal { get; private set; }
         public TypedTerminal<float> AlphaInputTerminal { get; private set; }
-        public SolidColorBrush SelectedColorBrush { get; set; }
-        public string ClickPoint { get; set; }
+        public SolidColorBrush SelectedColorBrush { get; set; } = new SolidColorBrush(new System.Windows.Media.Color() { R = 50, G = 100, B = 65, A = 255 });
+        public float ColorPaletteImageMargin { get; set; } = 3;
 
         public bool IsColorPickerVisible { get; set; }
 
@@ -34,7 +34,7 @@ namespace DiiagramrFadeCandy
 
             ColorOutputTerminal = setup.OutputTerminal<Color>("Color", Direction.South);
 
-            ColorWheelBitmap = Properties.Resources.lightcolorspectrum;
+            ColorWheelBitmap = Properties.Resources.colorpicker;
             ColorWheelBitmapImage = BitmapToImageSource(ColorWheelBitmap);
 
             RedInputTerminal = setup.InputTerminal<float>("Red", Direction.North);
@@ -43,9 +43,14 @@ namespace DiiagramrFadeCandy
             AlphaInputTerminal = setup.InputTerminal<float>("Alpha", Direction.West);
 
             RedInputTerminal.DataChanged += RedInputTerminal_DataChanged;
-            RedInputTerminal.DataChanged += GreenInputTerminal_DataChanged;
-            RedInputTerminal.DataChanged += BlueInputTerminal_DataChanged;
-            RedInputTerminal.DataChanged += AlphaInputTerminal_DataChanged;
+            BlueInputTerminal.DataChanged += GreenInputTerminal_DataChanged;
+            GreenInputTerminal.DataChanged += BlueInputTerminal_DataChanged;
+            AlphaInputTerminal.DataChanged += AlphaInputTerminal_DataChanged;
+
+            RedInputTerminal.Data = SelectedColorBrush.Color.R / 255f;
+            GreenInputTerminal.Data = SelectedColorBrush.Color.G / 255f;
+            BlueInputTerminal.Data = SelectedColorBrush.Color.B / 255f;
+            BlueInputTerminal.Data = SelectedColorBrush.Color.A / 255f;
         }
 
         private void RedInputTerminal_DataChanged(float data)
@@ -163,10 +168,10 @@ namespace DiiagramrFadeCandy
                 return;
             }
 
-            var xRelativeToBitmap = ColorWheelBitmap.Width / Width * position.X;
-            var yRelativeToBitmap = ColorWheelBitmap.Height / Height * position.Y;
-
-            ClickPoint = $"{position.X.ToString("0,0")}, {position.Y.ToString("0,0")}";
+            var paletteImageWidth = Width - 2 * ColorPaletteImageMargin;
+            var paletteImageHeight = Height - 2 * ColorPaletteImageMargin;
+            var xRelativeToBitmap = ColorWheelBitmap.Width / paletteImageWidth * position.X;
+            var yRelativeToBitmap = ColorWheelBitmap.Height / paletteImageHeight * position.Y;
 
             var color = ColorWheelBitmap.GetPixel((int)xRelativeToBitmap, (int)yRelativeToBitmap);
 
@@ -180,7 +185,18 @@ namespace DiiagramrFadeCandy
         private void SetColorOnTerminal(float floatR, float floatG, float floatB, float floatA)
         {
             ColorOutputTerminal.Data = new Color(floatR, floatG, floatB, floatA);
-            SelectedColorBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb((byte)(floatR * 255.0), (byte)(floatG * 255.0), (byte)(floatB * 255.0), (byte)(floatA * 255.0)));
+            var backgroundR = (byte)(floatR * 255.0f);
+            var backgroundG = (byte)(floatG * 255.0f);
+            var backgroundB = (byte)(floatB * 255.0f);
+            var backgroundA = (byte)(floatA * 255.0f);
+            var backgroundColor = System.Windows.Media.Color.FromArgb(backgroundA, backgroundR, backgroundG, backgroundB);
+            if (View != null)
+            {
+                View.Dispatcher.Invoke(() =>
+                {
+                    SelectedColorBrush.Color = backgroundColor;
+                });
+            }
         }
 
         protected override void MouseEnteredNode()

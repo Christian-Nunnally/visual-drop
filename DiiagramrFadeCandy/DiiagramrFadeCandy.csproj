@@ -129,11 +129,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\lightcolorspectrum.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Resource>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Diiagramr\DiiagramrAPI\DiiagramrAPI.csproj">
       <Project>{27b53540-1ffb-490c-9db1-d829179869ea}</Project>
       <Name>DiiagramrAPI</Name>

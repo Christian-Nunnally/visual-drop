@@ -211,7 +211,6 @@ namespace DiiagramrFadeCandy
             foreach (var driver in Drivers)
             {
                 driver.ImageDataProvider = null;
-                driver.UpdateFrame -= RenderFrame;
             }
             Drivers.Clear();
 
@@ -219,7 +218,6 @@ namespace DiiagramrFadeCandy
             {
                 Drivers.Add(driver);
                 driver.ImageDataProvider = this;
-                driver.UpdateFrame += RenderFrame;
             }
         }
 

@@ -21,8 +21,6 @@ namespace DiiagramrFadeCandy
 
         public bool AlternateStrideDirection { get; set; } = false;
 
-        public event Action<int> UpdateFrame;
-
         [DataMember]
         public int X
         {

@@ -14,7 +14,6 @@ namespace DiiagramrFadeCandy
         public TypedTerminal<float> HeightTerminal { get; private set; }
         public TypedTerminal<GraphicEffect> EffectTerminal { get; private set; }
         public TypedTerminal<Color> ColorTerminal { get; private set; }
-        public TypedTerminal<float> BrightnessTerminal { get; private set; }
 
         public ShapeEffect ShapeGraphic { get; set; } = new ShapeEffect();
 
@@ -36,31 +35,23 @@ namespace DiiagramrFadeCandy
             YTerminal = setup.InputTerminal<float>("Y", Direction.West);
             YTerminal.Data = 0.5f;
             YTerminal.DataChanged += y => ShapeGraphic.Y = y;
-            RotationTerminal = setup.InputTerminal<float>("Degrees Rotation", Direction.West);
+            RotationTerminal = setup.InputTerminal<float>("Degrees Rotation", Direction.East);
             RotationTerminal.Data = 0.0f;
             RotationTerminal.DataChanged += r => ShapeGraphic.Rotation = r;
             ThicknessTerminal = setup.InputTerminal<float>("Thickness", Direction.West);
             ThicknessTerminal.Data = 0.5f;
             ThicknessTerminal.DataChanged += t => ShapeGraphic.Thickness = t;
             WidthTerminal = setup.InputTerminal<float>("Width", Direction.East);
-            WidthTerminal.Data = 0.25f;
+            WidthTerminal.Data = .9f;
             WidthTerminal.DataChanged += w => ShapeGraphic.Width = w;
             HeightTerminal = setup.InputTerminal<float>("Height", Direction.East);
-            HeightTerminal.Data = 0.25f;
+            HeightTerminal.Data = .9f;
             HeightTerminal.DataChanged += h => ShapeGraphic.Height = h;
-            BrightnessTerminal = setup.InputTerminal<float>("Brightness", Direction.East);
-            BrightnessTerminal.DataChanged += BrightnessTerminalDataChanged;
-            BrightnessTerminal.Data = 1.0f;
 
             ColorTerminal = setup.InputTerminal<Color>("Color", Direction.North);
             ColorTerminal.DataChanged += ColorTerminalTerminalDataChanged;
             EffectTerminal = setup.OutputTerminal<GraphicEffect>("Effect", Direction.South);
             EffectTerminal.Data = ShapeGraphic;
-        }
-
-        private void BrightnessTerminalDataChanged(float brightness)
-        {
-            ShapeGraphic.A = brightness;
         }
 
         private void ColorTerminalTerminalDataChanged(Color color)

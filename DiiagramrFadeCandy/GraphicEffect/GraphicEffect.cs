@@ -1,8 +1,10 @@
 ﻿using DiiagramrAPI.Diagram;
 using SharpDX.Direct2D1;
+using System;
 
 namespace DiiagramrFadeCandy
 {
+    [Serializable]
     public class GraphicEffect : IWireableType
     {
         public virtual void Draw(RenderTarget target) { }

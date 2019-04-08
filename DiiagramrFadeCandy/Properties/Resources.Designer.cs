@@ -63,9 +63,9 @@ namespace DiiagramrFadeCandy.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap lightcolorspectrum {
+        internal static System.Drawing.Bitmap colorpicker {
             get {
-                object obj = ResourceManager.GetObject("lightcolorspectrum", resourceCulture);
+                object obj = ResourceManager.GetObject("colorpicker", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
