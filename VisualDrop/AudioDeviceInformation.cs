@@ -1,6 +1,8 @@
 ﻿using PropertyChanged;
 using System;
-using System.Runtime.Serialization;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Xml.Serialization;
 
 namespace VisualDrop
 {
@@ -10,7 +12,6 @@ namespace VisualDrop
     {
         private string _name;
 
-        [DataMember]
         public string Name
         {
             get => _name;
@@ -26,9 +27,35 @@ namespace VisualDrop
                 {
                     DisplayName = DisplayName.Substring(DisplayName.IndexOf(" - ") + 3);
                 }
+                SetIcon();
+            }
+        }
+
+        private void SetIcon()
+        {
+            if (Name.Contains("headphones") || Name.Contains("Headphones"))
+            {
+                Icon = new BitmapImage(new Uri("pack://application:,,,/VisualDrop;component/Resources/headphoneicon.png"));
+            }
+            else if (Name.Contains("speakers") || Name.Contains("Speakers"))
+            {
+                Icon = new BitmapImage(new Uri("pack://application:,,,/VisualDrop;component/Resources/speakericon.png"));
+            }
+            else if (Name.Contains("none"))
+            {
+                Icon = new BitmapImage(new Uri("pack://application:,,,/VisualDrop;component/Resources/noneicon.png"));
+            }
+            else
+            {
+                Icon = new BitmapImage(new Uri("pack://application:,,,/VisualDrop;component/Resources/questionicon.png"));
             }
         }
 
         public string DisplayName { get; set; }
+
+        [XmlIgnore]
+        public ImageSource Icon { get; set; }
+
+        public bool Running { get; set; }
     }
 }

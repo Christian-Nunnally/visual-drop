@@ -8,6 +8,8 @@ namespace VisualDrop
 {
     public class AudioSourceAnalyzer
     {
+        private const int MinimumFFTBucketCount = 1;
+        private const int MaximumFFTBucketCount  = 1023;
         private readonly DispatcherTimer _displayRefreshTimer; //timer that refreshes the display
         private readonly float[] _fft; //buffer for fft data
         private readonly WASAPIPROC _process; //callback function to obtain data
@@ -19,6 +21,7 @@ namespace VisualDrop
         private string _lastDevice;
 
         private static AudioSourceAnalyzer _instance;
+        private int _lines = 4;
 
         public bool IsEnabled => _displayRefreshTimer.IsEnabled;
 
@@ -117,7 +120,11 @@ namespace VisualDrop
 
         public event Action<List<byte>> AudioDataReceived;
 
-        public int Lines { get; set; } = 4;
+        public int Lines
+        {
+            get => _lines;
+            set => _lines = Math.Min(MaximumFFTBucketCount , Math.Max(MinimumFFTBucketCount, value));
+        }
 
         //timer
         private void _t_Tick(object sender, EventArgs e)
