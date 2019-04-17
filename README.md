@@ -1,2 +1,0 @@
-# Visual Drop Repository
-TODO:
